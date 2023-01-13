@@ -1,21 +1,19 @@
 # catkin_ws_remote
 
-# Windows Remote controller for Two axis Adaptable Ankle (TADA) prosthetic device
+## Windows Remote controller for Two axis Adaptable Ankle (TADA) prosthetic device
 
-# Dependecies
+## Dependecies
 This repo acts as additive functionality to the tadaros package:
 https://github.com/kieran-nichols/catkin_ws_tadaros.git
 
 ## Prerequisites
-* Windows laptop (can potentially use Linux or Mac)
 * Linux
 * Python 3.7
 * ROS Noetic
 * Visual Studio 22
 
 ## Hardware
-* Raspberry Pi
-
+* Windows laptop (can potentially use Linux or Mac)
 
 ## Installation
 
@@ -24,25 +22,39 @@ https://github.com/kieran-nichols/catkin_ws_tadaros.git
 
 
 ## How to use
-* "roscore" # run the ROS master node from a terminal
-* To run the TADA system, use "roslaunch launch_file.launch" from the catkin_ws_tadaros/src" folder
-* To run individual nodes, use "rosrun tada_ros [NAME_NODE].py" ex: "rosrun tada_ros sensor_node.py" # run
-   each node in a new terminal
-* If you want to plot the data being sent across topics on a graph, you can use
-  the command "rqt_plot topic1/field1:field2:field3" and then run the nodes.
-  For example "rqt_plot recon_topic/pos_x:vel_x:accel_x"
+### How to set up Remote bridge:
+Helpful links: https://husarion.com/tutorials/ros-tutorials/5-running-ros-on-multiple-machines/ |https://github.com/Brabalawuka/RosOnWindows
+
+#### Key instructions for remote windows:
+1. Change ROS_MASTER URI (You master Device running roscore). You won't need to start roscore.
+2. Create a .txt including following content: (Use your raspi ip address)
+	```	
+	@echo off 
+	export ROS_MASTER_URI=http://192.168.1.19:11311
+	export ROS_IP=192.168.1.249
+	```
+	Save as C:\bashrc.cmd at disk C (or another non-catkin_ws location).
+3. (Optional) Following step 4, open regedit: -> Win+R and enter regedit. Find [HKEY_LOCAL_MACHINE\Software\Microsoft\Command Processor] and add a string key named Autorun, value is C:\bashrc.cmd"
+4. Run the cmd file in the Developer Command Prompt in VS22 "C:\bashrc.cmd".
+5. Use rosrun to execute the individual programs on remote machine
+
+#### Key instructions for raspi:
+1. On the raspi device open the .bashrc file, then add the lines:
+	```
+	export ROS_MASTER_URI=http://192.168.1.19:11311
+	export ROS_IP=192.168.1.19
+	```
+2. Start roscore
   
 ## Issues and Error Handling
 If you have any issues, please refer to the issue folder first as someone in our group could have dealt with it already. Also, please post your solutions to your general issues in there.
-
-* When trying to run the nodes, I got an error on "import rospy".
 
 
 ## Authors
 Kieran Nichols, Sofya Akhetova, Becca Roembke, Peter Adamczyk
 
 ## License
-University of Wisconsin BADGER lab? # TODO
+University of Wisconsin BADGER lab? 
 
 ## Acknowledgements
 Thanks to the current team and the past work from Ryan Moreno, Mike Greene, Preston Lewis,
