@@ -1,0 +1,8 @@
+prefix=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel
+
+Name: xsens_mti_driver
+Description: Description of xsens_mti_driver
+Version: 0.2021.4
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: roscpp tf2 tf2_ros sensor_msgs std_msgs geometry_msgs

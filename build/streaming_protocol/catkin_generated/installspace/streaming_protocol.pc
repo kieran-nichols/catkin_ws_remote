@@ -1,0 +1,8 @@
+prefix=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/install
+
+Name: streaming_protocol
+Description: Description of streaming_protocol
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: roscpp std_msgs

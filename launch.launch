@@ -1,0 +1,7 @@
+<launch>
+
+<node pkg="talker_listener" type="scripts/talker.py" name="talker"/> 
+
+<node pkg="talker_listener" type="scripts/listener.py" name="listener" /> 
+
+</launch>
