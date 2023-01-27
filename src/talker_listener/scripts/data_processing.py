@@ -6,6 +6,8 @@ from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
 from std_msgs.msg import String, Float32MultiArray, MultiArrayDimension
 from std_msgs.msg import String
+from tada_ros.msg import EuropaMsg
+from tada_ros.msg import IMUDataMsg
 from multiprocessing import Process, Manager, freeze_support, Pool, Pipe, Queue
 # import inspect module
 import inspect
@@ -33,11 +35,14 @@ def imu_callback(data):
 
 def europa_callback(data):
     global europa_data
-    europa_data = data.data
+    europa_data = [data.mx, data.my, data.fz]
+    #print(europa_data)
     
 def gui_cmd_callback(data):
     global gui_cmd
-    gui_cmd = str(data.data) # need to parse the motor commands correctly
+    gui_cmd_str = list(str(data.data).split(',')) # need to parse the motor commands correctly
+    gui_cmd = list(str[float(i) for i in gui_cmd_str]
+    print(gui_cmd)
 
 # need to find way to have the talker_callback save continuously to a file while the gui_callback can change the filename
 def talker_callback(data):
@@ -76,13 +81,15 @@ def data_save():
     global record_button, filename, xsens_com, xsens_joint_angle, brain_data, imu_data, europa_data, gui_cmd
     #print(data.data)
     current_time = datetime.now().strftime('%H-%M-%S-%f')
-    data_array = [current_time, gui_cmd[0], gui_cmd[1], xsens_com, xsens_joint_angle, brain_data, imu_data, europa_data]
+    #data_array = [current_time, gui_cmd, gui_cmd, xsens_com, xsens_joint_angle, brain_data, imu_data, europa_data]
+    data_array = [current_time, gui_cmd, europa_data[0], europa_data[1], europa_data[2]]
     
     if bool(record_button):               
         with open(filename, 'a') as f:
             # Save the headers only once when the file is opened
             if f.tell() == 0:
-                headers = ['time', 'index', 'ankle_angle', 'ankle_angle', 'ankle_angle', 'imu_ang_vel', 'imu_ang_vel', 'imu_ang_vel']
+                #headers = ['time', 'index', 'ankle_angle', 'ankle_angle', 'ankle_angle', 'imu_ang_vel', 'imu_ang_vel', 'imu_ang_vel']
+                headers = ['time', 'theta', 'alpha', 'mx', 'my', 'fz']
                 #['talker']#['Xsens', 'Brain', 'IMU', 'Europa']
                 f.write(','.join(headers) + '\n')
             f.write(','.join([str(x) for x in data_array]) + '\n')
@@ -99,8 +106,8 @@ def main():
     xsens_joint_angle = numpy.array([0], dtype=numpy.float32)   
     brain_data = numpy.array([0], dtype=numpy.float32)
     imu_data = numpy.array([0], dtype=numpy.float32)
-    europa_data = numpy.array([0], dtype=numpy.float32)
-    gui_cmd = numpy.array([0], dtype=numpy.float32)
+    europa_data = numpy.array([0,0,0], dtype=numpy.float32)
+    gui_cmd = numpy.array([0,0], dtype=numpy.float32) # str('0,0')
     prev_record = 0
       
     # Initialize the ROS node
@@ -111,7 +118,7 @@ def main():
     rospy.Subscriber('xsens_joint_angle', Float32MultiArray, xsens_joint_angle_callback)
     rospy.Subscriber('brain', numpy_msg(Floats), brain_callback)
     rospy.Subscriber('imu', numpy_msg(Floats), imu_callback)
-    rospy.Subscriber('europa', numpy_msg(Floats), europa_callback)
+    rospy.Subscriber('europa_topic', EuropaMsg, europa_callback)
     rospy.Subscriber('chatter_control', numpy_msg(Floats), gui_callback)
     rospy.Subscriber('chatter', numpy_msg(Floats), talker_callback)
     rospy.Subscriber('notes', String, notes_callback)

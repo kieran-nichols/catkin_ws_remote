@@ -1,5 +1,6 @@
 import rospy
 import time
+from datetime import datetime
 import numpy
 from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
@@ -33,56 +34,74 @@ def imu_callback(data):
 def europa_callback(data):
     global europa_data
     europa_data = data.data
+    
+def gui_cmd_callback(data):
+    global gui_cmd
+    gui_cmd = str(data.data) # need to parse the motor commands correctly
 
 # need to find way to have the talker_callback save continuously to a file while the gui_callback can change the filename
 def talker_callback(data):
-    global record_button, filename, notes
-    data_array = data.data[0:7]
-    #print(record_button)
-    if bool(record_button[0]):  
-        with open(filename, 'a') as f:
-            # Save the headers only once when the file is opened
-            if f.tell() == 0:
-                headers = ['index', 'ankle_angle', 'ankle_angle', 'ankle_angle', 'imu_ang_vel', 'imu_ang_vel', 'imu_ang_vel']
-                #['talker']#['Xsens', 'Brain', 'IMU', 'Europa']
-                f.write(','.join(headers) + '\n')
-            f.write(','.join([str(x) for x in data_array]) + '\n')
-    #print(args[0])  
-
-def gui_callback(data):
-    global record_button, filename
+    global record_button, filename, notes, talker_data
+    talker_data = data.data[0:7]
+    #print(record_button) 
+              
+def notes_callback(data):
+    global record_button, notes
     #print(data.data)
-    record_button = data.data
-    if bool(data.data[0]): 
+    notes = data.data
+    current_time = time.strftime('%H-%M-%S', time.gmtime())
+    if bool(record_button): 
+        # Save the notes string to a notes file (txt) for the data
+        timestamp = time.strftime('%Y-%m-%d', time.gmtime())
+        notes_filename = ('catkin_ws/src/talker_listener/data/notes_{}.txt'.format(timestamp))
+        with open(notes_filename, 'a') as f:
+            # Save the headers only once when the file is opened
+            f.write( current_time + ': ' + notes + '\n')
+        #print('file created') 
+        # 
+        
+def gui_callback(data):
+    global record_button, filename, xsens_com, xsens_joint_angle, brain_data, imu_data, europa_data, gui_cmd, prev_record
+    #print(data.data)
+    prev_record = record_button
+    record_button = data.data[0]
+    
+    if bool(record_button - prev_record == 1): # moment when record botton is turned on
         # Save the data array to a CSV file with a time and date in the file name
         timestamp = time.strftime('%Y-%m-%d_%H-%M-%S', time.gmtime())
         filename = ('catkin_ws/src/talker_listener/data/data_{}.csv'.format(timestamp))
         print('file created')
-
-#def notes_callback(data):
-#    global record_button, notes
-#    #print(data.data)
-#    notes = data.data
-#    if bool(data.data[0]): 
-#        # Save the notes string to a notes file (txt) for the data
-#        timestamp = time.strftime('%Y-%m-%d', time.gmtime())
-#        notes_filename = ('catkin_ws/src/talker_listener/data/notes_{}.txt'.format(timestamp))
-#        with open(notes_filename, 'a') as f:
-#            # Save the headers only once when the file is opened
-#            f.write(notes + '\n')
-#        #print('file created')  
+        
+def data_save():
+    global record_button, filename, xsens_com, xsens_joint_angle, brain_data, imu_data, europa_data, gui_cmd
+    #print(data.data)
+    current_time = datetime.now().strftime('%H-%M-%S-%f')
+    data_array = [current_time, gui_cmd, gui_cmd, xsens_com, xsens_joint_angle, brain_data, imu_data, europa_data[0]]
     
+    if bool(record_button):               
+        with open(filename, 'a') as f:
+            # Save the headers only once when the file is opened
+            if f.tell() == 0:
+                headers = ['time', 'index', 'ankle_angle', 'ankle_angle', 'ankle_angle', 'imu_ang_vel', 'imu_ang_vel', 'imu_ang_vel']
+                #['talker']#['Xsens', 'Brain', 'IMU', 'Europa']
+                f.write(','.join(headers) + '\n')
+            f.write(','.join([str(x) for x in data_array]) + '\n')
+  
 def main():
-    global xsens_com_raw, xsens_joint_angle_raw, xsens_com, xsens_joint_angle, brain_data, imu_data, europa_data, record_button, talker_data, filename#, notes
+    global xsens_com_raw, xsens_joint_angle_raw, xsens_com, xsens_joint_angle, brain_data, imu_data, europa_data, record_button, talker_data, filename, notes, gui_cmd, prev_record
     filename = ''
-    #notes = ''
+    notes = ''
     talker_data = numpy.array([0], dtype=numpy.float32)
-    record_button = numpy.array([0], dtype=numpy.float32)
+    record_button = 0
     xsens_com_raw = Float32MultiArray()
     xsens_joint_angle_raw = Float32MultiArray()
     xsens_com = numpy.array([0], dtype=numpy.float32)
-    xsens_joint_angle = numpy.array([0], dtype=numpy.float32)
-    
+    xsens_joint_angle = numpy.array([0], dtype=numpy.float32)   
+    brain_data = numpy.array([0], dtype=numpy.float32)
+    imu_data = numpy.array([0], dtype=numpy.float32)
+    europa_data = numpy.array([0], dtype=numpy.float32)
+    gui_cmd = numpy.array([0], dtype=numpy.float32)
+    prev_record = 0
       
     # Initialize the ROS node
     rospy.init_node('data_node')
@@ -95,9 +114,9 @@ def main():
     rospy.Subscriber('europa', numpy_msg(Floats), europa_callback)
     rospy.Subscriber('chatter_control', numpy_msg(Floats), gui_callback)
     rospy.Subscriber('chatter', numpy_msg(Floats), talker_callback)
-    #rospy.Subscriber('notes', String, notes_callback)
- 
-    
+    rospy.Subscriber('notes', String, notes_callback)
+    rospy.Subscriber('gui_topic', String, gui_cmd_callback)
+     
     ## Start the data publishing loop
     rate = rospy.Rate(100)
     while not rospy.is_shutdown():
@@ -109,6 +128,7 @@ def main():
         pub = rospy.Publisher('processed_data', numpy_msg(Floats), queue_size=10)
         #print(data_array)
         pub.publish(data_array)   
+        data_save()
         rate.sleep()
 
 if __name__ == '__main__':
