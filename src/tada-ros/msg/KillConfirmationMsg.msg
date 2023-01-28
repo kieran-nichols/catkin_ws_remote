@@ -1,0 +1,2 @@
+bool motors_killed
+bool sensors_killed

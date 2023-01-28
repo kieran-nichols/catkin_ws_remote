@@ -109,6 +109,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/build/ros_tutorials_topic-master/cmake_install.cmake")
   include("C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/build/streaming_protocol/cmake_install.cmake")
+  include("C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/build/tada-ros/cmake_install.cmake")
   include("C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/build/talker_listener/cmake_install.cmake")
 
 endif()

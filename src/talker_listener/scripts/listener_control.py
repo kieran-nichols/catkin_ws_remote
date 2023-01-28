@@ -5,7 +5,7 @@ from std_msgs.msg import Float32MultiArray
 from rospy.numpy_msg import numpy_msg
 import pandas as pd
 import json
-import numpy
+import numpy as np
 from rospy_tutorials.msg import Floats
 from collections import deque
 ## Plotly setup
@@ -38,13 +38,48 @@ X = deque(maxlen = 50)
 Y = deque(maxlen = 50)
 #Y.append(0)
 
+def TADA_angle(inclination_angle_deg, alpha_deg):
+    # code to solve plantarflexion and eversion angles for TADA foot
+    # theta: foot inclination angle; desired downward inclination angle
+    # alpha: downward direction vector: atan(f/c) where f is plantarflexion angle and
+    # c is eversion angle, beta: wedge angle: 5 deg, solve for q1 and q5
+
+    theta = inclination_angle_deg*np.pi/180; 
+    beta = 5*np.pi/180; # fixed
+    q3 = 2*np.real(np.arccos(np.sin(theta/2)/np.sin(beta))); 
+    alpha = alpha_deg * np.pi/180;
+    Motor1_angle_unwrapped = 180/np.pi*(alpha - np.arctan2(np.tan(q3/2),np.cos(beta)));
+    Motor2_angle_unwrapped = 180/np.pi*(-(alpha + np.arctan2(np.tan(q3/2),np.cos(beta)))); 
+    
+    Motor1_angle = (Motor1_angle_unwrapped  + 180) % ( 360 ) - 180
+    Motor2_angle = (Motor2_angle_unwrapped  + 180) % ( 360 ) - 180
+    
+    q1 = Motor1_angle*np.pi/180;
+    q5 = Motor2_angle*np.pi/180;
+    q2 = np.pi/36; q4 = q2;
+    R01 = np.array([[np.cos(q1), -np.sin(q1), 0], [np.sin(q1), np.cos(q1), 0], [0, 0, 1]])
+    R12 = np.array([[np.cos(q2), 0 , np.sin(q2)], [0, 1, 0], [-np.sin(q2), 0, np.cos(q2)]])
+    q3 = -q1 - q5;
+    R23 = np.array([[np.cos(q3), -np.sin(q3), 0], [np.sin(q3), np.cos(q3), 0], [0, 0, 1]])
+    R34 = np.array([[np.cos(q4), 0, np.sin(q4)], [0, 1, 0], [-np.sin(q4), 0, np.cos(q4)]])
+    R45 = np.array([[np.cos(q5), -np.sin(q5), 0], [np.sin(q5), np.cos(q5), 0], [0, 0, 1]])
+    
+    R02 = np.matmul(R01,R12)
+    R03 = np.matmul(R02,R23)
+    R04 = np.matmul(R03,R34)
+    R05 = np.matmul(R04,R45)
+    
+    Plantarflexion_angle = 180/np.pi*R05[0,2];
+    Eversion_angle = 180/np.pi*R05[1,2];
+    return (Plantarflexion_angle, Eversion_angle)
+
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])#(__name__)
 
 # Main Dash app that processes and sorts the incoming ROS data and returns the appropiate scatter data that is added to the graphs
 # This callback is quicker with direct javascript code that is embedded in the triple quotations marks
 
 @app.callback(
-    [Output('live-graph', 'extendData'),],
+    [Output('live-graph', 'extendData')],
     [Input('graph-update', 'n_intervals'), Input("dropdown0", "value"),   Input("dropdown1", "value"),  Input("dropdown2", "value"), State('store', 'children'),]
     )
 
@@ -58,7 +93,7 @@ def update_graph_scatter(n_intervals, val0, val1, val2, data):
         y0 = data["x"]
     else:    
         y0 = data["y"]
-
+        
     return [[dict(x=[x0], y=[y0]), [0], resolution]]
 
 # Seondary callback function for ROS which Dash calls and it includes the fast_ros_dict_to_json, callback and init_variables functions
@@ -87,7 +122,7 @@ def init_variables(shared_dict): # set up ROS subscibers
 
 # high-level callback for input widgets
 @app.callback(
-    [Output('theta-gauge', 'value'), Output('Theta', 'value'), Output('Theta_num', 'value'), Output('alpha-gauge', 'value'),  Output('Alpha', 'value'), Output('Alpha_num', 'value'),],# Output('Theta-result', 'children'), Output('dropdown_kill-result', 'children'),],
+    [ Output('polar-graph', 'extendData'), Output('Theta', 'value'), Output('theta-gauge', 'value'), Output('Theta_num', 'value'),  Output('Alpha', 'value'), Output('alpha-gauge', 'value'), Output('Alpha_num', 'value'),],# 
     [ Input('our-power-button-1', 'on'), Input('Theta', 'value'), Input('Theta_num', 'value'), Input('Alpha', 'value'), Input('Alpha_num', 'value'), Input('dropdown_kill', 'value'), State('notes-input', 'value')], 
      prevent_initial_call=True
     )
@@ -100,7 +135,10 @@ def update_output(on, value4, value3, value1, value0, value2, note): #, value3):
     notes.put(note) if trigger_id == "our-power-button-1" else notes.put(note)
     angle.put(alpha1)
     angle.put(theta1)
-    return (theta1, theta1, theta1, alpha1, alpha1, alpha1) # f'Theta: {theta1},  Alpha: {alpha1}.', f'Killed {value2} node.') # can't call too many
+    
+    (Plantarflexion_angle, Eversion_angle) = TADA_angle(theta1,alpha1)
+    polar_info = [dict(x=[[Eversion_angle]], y=[[Plantarflexion_angle]]), [0], 10]
+    return (polar_info, theta1, theta1, theta1, alpha1, alpha1, alpha1) # f'Theta: {theta1},  Alpha: {alpha1}.', f'Killed {value2} node.') # can't call too many
 
 def init_publisher(record,angle,notes): 
     rospy.init_node('talker_record', anonymous=True)
@@ -120,7 +158,7 @@ def init_publisher(record,angle,notes):
             pub_data = 0
             pub_data1 = ''
         #print(rec)
-        pub_array = numpy.array([pub_data], dtype=numpy.float32)
+        pub_array = np.array([pub_data], dtype=np.float32)
         pub.publish(pub_array)
         
         pub_notes.publish(pub_data1)
@@ -168,6 +206,12 @@ def setup_dash_app(shared_dict):
     figure['layout']['xaxis3']['title']='TADA Ankle Angle'
     figure['layout']['yaxis3']['title']='TADA Metric'
     figure = figure
+    
+    figure_polar = go.Figure()
+    figure_p = go.Scatter(x=[0], y=[0], mode= 'markers', name='Polar graph')
+    figure_polar.add_trace(figure_p)
+    figure_polar['layout']['yaxis']['range']=[-10, 10]
+    figure_polar['layout']['xaxis']['range']=[-10, 10]
 
     app.layout = html.Div(
                # Graphing
@@ -190,10 +234,17 @@ def setup_dash_app(shared_dict):
                     html.Div([ html.Div(id='Theta-result'),],style={'textAlign': 'center','paddingBottom':'0rem'}),
                     html.Div(children=[
                         # slider or numeric input
-                        html.Div([ dcc.Slider(id='Theta', value=0, min=0, max=10, updatemode='drag'), dcc.Input(id='Theta_num', type='number',value=0, min=0, max=10, debounce=False), # wait until input in parallel, mostly on alpha
-                                  daq.Gauge(id='theta-gauge', label='Theta', min=0, max=10)],   style={"width": "50%", 'textAlign': 'center'}),
-                        html.Div([ dcc.Slider(id='Alpha', value=0, min=-180, max=180, updatemode='drag'),  dcc.Input(id='Alpha_num', type='number',value=0, min=-180, max=180, debounce=False),
-                                  daq.Gauge(id='alpha-gauge', label='Alpha', min=-180, max=180) ],  style={"width": "50%", 'textAlign': 'center'}),
+                        html.Div([ dcc.Slider(id='Theta', value=0, min=0, max=10, updatemode='drag'),
+                                  dcc.Input(id='Theta_num', type='number',value=0, min=0, max=10, debounce=False), #daq.Knob(id='Theta', value=0, min=0, max=10)]# knob does not have instantaneous updates like how the slider has drag updates
+                                  daq.Gauge(id='theta-gauge', label='Theta', min=0, max=10, size=200)],
+                                  style={"width": "33%", 'textAlign': 'center'}),
+                        
+                        html.Div([dcc.Graph(id = 'polar-graph', figure=figure_polar)], style={"width": "33%"}),
+                        
+                        html.Div([ dcc.Slider(id='Alpha', value=0, min=-180, max=180, updatemode='drag'),  
+                                  dcc.Input(id='Alpha_num', type='number',value=0, min=-180, max=180, debounce=False), #daq.Knob(id='Alpha', value=0, min=-180, max=180),]
+                                  daq.Gauge(id='alpha-gauge', label='Alpha', min=-180, max=180, size=200) ]  
+                                 ,style={"width": "33%", 'textAlign': 'center'}),
                         ],style=dict(display='flex')), 
                     
                     html.Div(children=[ html.Div([dcc.Dropdown(['None', 'Static', 'Adaptive (Moment)'], 'None', id='TADA_mode'), html.Div(id='tada_mode-result') ], style={"width": "100%", 'textAlign': 'center'}),],
