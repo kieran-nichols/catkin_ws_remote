@@ -1,8 +1,0 @@
-prefix=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel
-
-Name: x_soem
-Description: Description of x_soem
-Version: 1.4.1003
-Cflags: 
-Libs: -L${prefix}/lib -lsoem
-Requires: 

@@ -284,12 +284,6 @@ SETUPTOOLS_DEB_LAYOUT:BOOL=OFF
 //Name of the computer/site where compile is being run
 SITE:STRING=LAPTOP-C6HBB0GL
 
-//Value Computed by CMake
-SOEM_BINARY_DIR:STATIC=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/build/soem/SOEM
-
-//Value Computed by CMake
-SOEM_SOURCE_DIR:STATIC=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/src/soem/SOEM
-
 //Path to a file.
 _gmock_INCLUDES:FILEPATH=_gmock_INCLUDES-NOTFOUND
 
@@ -362,9 +356,6 @@ rospy_DIR:PATH=C:/opt/ros/noetic/x64/share/rospy/cmake
 //The directory containing a CMake configuration file for rostime.
 rostime_DIR:PATH=C:/opt/ros/noetic/x64/share/rostime/cmake
 
-//Dependencies for the target
-soem_LIB_DEPENDS:STATIC=general;wpcap.lib;general;Packet.lib;general;Ws2_32.lib;general;Winmm.lib;
-
 //The directory containing a CMake configuration file for std_msgs.
 std_msgs_DIR:PATH=C:/opt/ros/noetic/x64/share/std_msgs/cmake
 
@@ -377,8 +368,6 @@ streaming_protocol_SOURCE_DIR:STATIC=C:/Users/the1k/source/repos/PythonApplicati
 //Value Computed by CMake
 tada_ros_BINARY_DIR:STATIC=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/build/tada-ros
 
-tada_ros_DIR:PATH=
-
 //Value Computed by CMake
 tada_ros_SOURCE_DIR:STATIC=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/src/tada-ros
 
@@ -387,12 +376,6 @@ talker_listener_BINARY_DIR:STATIC=C:/Users/the1k/source/repos/PythonApplication1
 
 //Value Computed by CMake
 talker_listener_SOURCE_DIR:STATIC=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/src/talker_listener
-
-//Value Computed by CMake
-x_soem_BINARY_DIR:STATIC=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/build/soem
-
-//Value Computed by CMake
-x_soem_SOURCE_DIR:STATIC=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/src/soem
 
 //The directory containing a CMake configuration file for xmlrpcpp.
 xmlrpcpp_DIR:PATH=C:/opt/ros/noetic/x64/share/xmlrpcpp/cmake
@@ -553,8 +536,6 @@ FIND_PACKAGE_MESSAGE_DETAILS_Boost:INTERNAL=[C:/opt/ros/noetic/x64/include][cfou
 FIND_PACKAGE_MESSAGE_DETAILS_PY_em:INTERNAL=[C:\opt\ros\noetic\x64\lib\site-packages\em.py][v()]
 //Details about finding PythonInterp
 FIND_PACKAGE_MESSAGE_DETAILS_PythonInterp:INTERNAL=[C:/opt/ros/noetic/x64/python.exe][v3.8.3(3)]
-//Details about finding Threads
-FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 GTEST_BOTH_LIBRARIES:INTERNAL=C:/opt/ros/noetic/x64/Lib/gtest.lib;C:/opt/ros/noetic/x64/Lib/gtest_main.lib
 GTEST_FOUND:INTERNAL=TRUE
 //ADVANCED property for variable: GTEST_INCLUDE_DIR

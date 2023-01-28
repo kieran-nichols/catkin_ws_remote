@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	//ros::spinOnce();
 
 	std::string hostDestinationAddress = "localhost";
-	int port = 9763;
+	int port = 8000;
 
 	UdpServer udpServer(hostDestinationAddress, (uint16_t)port);
 

@@ -36,7 +36,7 @@
 class UdpServer
 {
 public:
-	UdpServer(XsString address = "localhost", uint16_t port = 9763);
+	UdpServer(XsString address = "localhost", uint16_t port = 8000);
 	~UdpServer();
 
 	void readMessages();

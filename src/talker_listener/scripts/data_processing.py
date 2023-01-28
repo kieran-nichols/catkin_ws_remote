@@ -1,3 +1,4 @@
+# !/usr/bin/env python3
 import rospy
 import time
 from datetime import datetime
@@ -14,24 +15,30 @@ import inspect
 
 # define callback functions for the ROS subscibers
 def xsens_com_callback(data):
-    global xsens_com_raw, xsens_com
+    #print("in the calback ")
+    global xsens_com
     #print(data.data)
     xsens_com = numpy.array(data.data)
+    #print(len(xsens_com))
     #xsens_com = xsens_com.reshape(data.layout.dim[0].size, data.layout.dim[1].size)
     
 def xsens_joint_angle_callback(data):
-    global xsens_joint_angle_raw, xsens_joint_angle
-    #print(data.data)
+    global xsens_joint_angle  
     xsens_joint_angle = numpy.array(data.data)
+    #print(len(xsens_joint_angle))
     #xsens_joint_angle = xsens_joint_angle.reshape(data.layout.dim[0].size, data.layout.dim[1].size)
 
 def brain_callback(data):
     global brain_data
     brain_data = data.data
-
+    
 def imu_callback(data):
     global imu_data
-    imu_data = data.data
+    #print("data: ")
+    #print(data)
+    imu_data = [data.accel_x, data.accel_y, data.accel_z, data.gyro_x, data.gyro_y, data.gyro_z, data.state, data.swing_time]
+    #print("imu_data: ")
+    #print(imu_data)
 
 def europa_callback(data):
     global europa_data
@@ -40,9 +47,10 @@ def europa_callback(data):
     
 def gui_cmd_callback(data):
     global gui_cmd
-    gui_cmd_str = list(str(data.data).split(',')) # need to parse the motor commands correctly
-    gui_cmd = list(str[float(i) for i in gui_cmd_str]
-    print(gui_cmd)
+    # split data that is a string into a list of floats
+    print(data.data)
+    gui_cmd = [float(x) for x in str(data.data).split()] #list(float(str(data.data).split(',')))
+    #print(gui_cmd)
 
 # need to find way to have the talker_callback save continuously to a file while the gui_callback can change the filename
 def talker_callback(data):
@@ -82,14 +90,26 @@ def data_save():
     #print(data.data)
     current_time = datetime.now().strftime('%H-%M-%S-%f')
     #data_array = [current_time, gui_cmd, gui_cmd, xsens_com, xsens_joint_angle, brain_data, imu_data, europa_data]
-    data_array = [current_time, gui_cmd, europa_data[0], europa_data[1], europa_data[2]]
+    if (len(xsens_joint_angle)!=24 or len(xsens_com)!=9):
+        data_array = [current_time, gui_cmd[0], gui_cmd[1], europa_data[0], europa_data[1], europa_data[2], imu_data[0], imu_data[1], imu_data[2], imu_data [3], imu_data[4], imu_data[5],  imu_data[6],  imu_data[7],
+                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    else:
+        data_array = [current_time, gui_cmd[0], gui_cmd[1], europa_data[0], europa_data[1], europa_data[2], imu_data[0], imu_data[1], imu_data[2], imu_data [3], imu_data[4], imu_data[5],  imu_data[6],  imu_data[7],
+                     xsens_joint_angle[0], xsens_joint_angle[1], xsens_joint_angle[2], xsens_joint_angle[3], xsens_joint_angle[4], xsens_joint_angle[5], xsens_joint_angle[6], xsens_joint_angle[7], 
+                     xsens_joint_angle[8], xsens_joint_angle[9], xsens_joint_angle[10], xsens_joint_angle[11], xsens_joint_angle[12], xsens_joint_angle[13], xsens_joint_angle[14], xsens_joint_angle[15], 
+                     xsens_joint_angle[16], xsens_joint_angle[17], xsens_joint_angle[18], xsens_joint_angle[19], xsens_joint_angle[20], xsens_joint_angle[21], xsens_joint_angle[22], xsens_joint_angle[23],
+                     xsens_com[0],xsens_com[1],xsens_com[2],xsens_com[3],xsens_com[4],xsens_com[5],xsens_com[6], xsens_com[7],xsens_com[8]]
     
     if bool(record_button):               
         with open(filename, 'a') as f:
             # Save the headers only once when the file is opened
             if f.tell() == 0:
                 #headers = ['time', 'index', 'ankle_angle', 'ankle_angle', 'ankle_angle', 'imu_ang_vel', 'imu_ang_vel', 'imu_ang_vel']
-                headers = ['time', 'theta', 'alpha', 'mx', 'my', 'fz']
+                headers = ['time', 'theta', 'alpha', 'mx', 'my', 'fz', 'imu_ang_vel_x', 'imu_ang_vel_y', 'imu_ang_vel_z', 'imu_accel_x', 'imu_accel_y', 'imu_accel_z', 'State', 'Swing',
+                           'Right_Hip_x', 'Right_Hip_y', 'Right_Hip_z', 'Right_Knee_x', 'Right_Knee_y', 'Right_Knee_z', 'Right_Ankle_x', 'Right_Ankle_y', 'Right_Ankle_z', 'Right_Ball_of_Foot_x', 'Right_Ball_of_Foot_y', 'Right_Ball_of_Foot_z','Left_Hip_x', 'Left_Hip_y', 'Left_Hip_z', 'Left_Knee_x', 'Left_Knee_y', 'Left_Knee_z', 'Left_Ankle_x', 'Left_Ankle_y', 'Left_Ankle_z', 'Left_Ball_of_Foot_x', 'Left_Ball_of_Foot_y', 'Left_Ball_of_Foot_z',
+                           'Center_of_Mass_Position_x', 'Center_of_Mass_Position_y', 'Center_of_Mass_Position_z', 'Center_of_Mass_Velocity_x', 'Center_of_Mass_Velocity_y', 'Center_of_Mass_Velocity_z', 'Center_of_Mass_Acceleration_x', 'Center_of_Mass_Acceleration_y', 'Center_of_Mass_Acceleration_z']
+                           #right_hip_x, right_hip_y, right_hip_z, ]
                 #['talker']#['Xsens', 'Brain', 'IMU', 'Europa']
                 f.write(','.join(headers) + '\n')
             f.write(','.join([str(x) for x in data_array]) + '\n')
@@ -105,7 +125,7 @@ def main():
     xsens_com = numpy.array([0], dtype=numpy.float32)
     xsens_joint_angle = numpy.array([0], dtype=numpy.float32)   
     brain_data = numpy.array([0], dtype=numpy.float32)
-    imu_data = numpy.array([0], dtype=numpy.float32)
+    imu_data = numpy.array([0,0,0,0,0,0,0,0], dtype=numpy.float32)
     europa_data = numpy.array([0,0,0], dtype=numpy.float32)
     gui_cmd = numpy.array([0,0], dtype=numpy.float32) # str('0,0')
     prev_record = 0
@@ -117,7 +137,7 @@ def main():
     rospy.Subscriber('xsens_com', Float32MultiArray, xsens_com_callback)
     rospy.Subscriber('xsens_joint_angle', Float32MultiArray, xsens_joint_angle_callback)
     rospy.Subscriber('brain', numpy_msg(Floats), brain_callback)
-    rospy.Subscriber('imu', numpy_msg(Floats), imu_callback)
+    rospy.Subscriber('sensing_topic', IMUDataMsg, imu_callback)
     rospy.Subscriber('europa_topic', EuropaMsg, europa_callback)
     rospy.Subscriber('chatter_control', numpy_msg(Floats), gui_callback)
     rospy.Subscriber('chatter', numpy_msg(Floats), talker_callback)

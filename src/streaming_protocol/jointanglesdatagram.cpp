@@ -103,8 +103,8 @@ void JointAnglesDatagram::printData() const
 	xsens_joint_angle.data.clear();
 	std::vector<float> vec;
 
-	for (int i = 0; i < m_data.size(); i++)
-	//for (int i = 14; i < 21; i++)
+	//for (int i = 0; i < m_data.size(); i++)
+	for (int i = 14; i < 24; i++)
 	{
 		//std::cout << "Parent Connection ID (256 * segment ID + point ID): " << m_data.at(i).parent << std::endl;
 		//std::cout << "Child Connection ID (256 * segment ID + point ID): " << m_data.at(i).child << std::endl;
