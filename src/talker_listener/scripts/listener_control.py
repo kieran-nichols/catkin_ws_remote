@@ -16,7 +16,7 @@ from collections import deque
 # from https://www.geeksforgeeks.org/multiprocessing-python-set-2/
 # form https://stackoverflow.com/questions/65321096/plotly-dash-and-callbacks-that-invoke-multiprocessing-code
 import dash 
-import time
+import time as timing
 import multiprocessing
 from dash.dependencies import Output, Input, State
 from dash import dcc
@@ -30,13 +30,16 @@ import functools
 import dash_daq as daq
 import dash_bootstrap_components as dbc
 from dash_extensions import Download
+from plotly.colors import sequential
 #from dash_extensions.snippets import send_file
 
+size = 10
 time = deque(maxlen = 50)
 X = deque(maxlen = 50)
 #X.append(0)
 Y = deque(maxlen = 50)
 #Y.append(0)
+colors = sequential.Plasma[:size]
 
 def TADA_angle(inclination_angle_deg, alpha_deg):
     # code to solve plantarflexion and eversion angles for TADA foot
@@ -134,7 +137,7 @@ def update_output(on, value4, value3, value1, value0, value2, note): #, value3):
     record.put(int(on)) if trigger_id == "our-power-button-1" else record.put(int(on))
     notes.put(note) if trigger_id == "our-power-button-1" else notes.put(note)
     angle.put(alpha1)
-    angle.put(theta1)
+    angle.put(theta1) #theta1 # time in milliseconds
     
     (Plantarflexion_angle, Eversion_angle) = TADA_angle(theta1,alpha1)
     polar_info = [dict(x=[[Eversion_angle]], y=[[Plantarflexion_angle]]), [0], 10]
@@ -164,7 +167,7 @@ def init_publisher(record,angle,notes):
         pub_notes.publish(pub_data1)
         
         alpha1 = angle.get()
-        theta1 = angle.get()
+        theta1 = angle.get() # timing.time_ns()//1000000 
         
         # create string that combines theta and alpha values
         pub1_data = f'{theta1} {alpha1}'
@@ -208,7 +211,7 @@ def setup_dash_app(shared_dict):
     figure = figure
     
     figure_polar = go.Figure()
-    figure_p = go.Scatter(x=[0], y=[0], mode= 'markers', name='Polar graph')
+    figure_p = go.Scatter(x=[0], y=[0], mode= 'lines+markers', name='Polar graph', marker=dict(symbol="arrow", size=15, angleref="previous",color=colors[0])) #, line=dict(color=colors))
     figure_polar.add_trace(figure_p)
     figure_polar['layout']['yaxis']['range']=[-10, 10]
     figure_polar['layout']['xaxis']['range']=[-10, 10]
