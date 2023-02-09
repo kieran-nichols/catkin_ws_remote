@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
 	ros::Publisher pub_xsens_com = s.advertise<std_msgs::Float32MultiArray>("xsens_com", 10);
 	ros::Publisher pub_xsens_joint_angle = s.advertise<std_msgs::Float32MultiArray>("xsens_joint_angle", 10);
 	//ros::spinOnce();
+	//ros::Rate rate(55); this does not affect the publishing rate of individual threads
 
 	std::string hostDestinationAddress = "localhost";
 	int port = 8000;
@@ -46,7 +47,9 @@ int main(int argc, char *argv[])
 	UdpServer udpServer(hostDestinationAddress, (uint16_t)port);
 
 	while (!_kbhit())
-		XsTime::msleep(10);
+		//XsTime::msleep(1);
+		//rate.sleep();
+		continue;
 
 	return 0;
 }

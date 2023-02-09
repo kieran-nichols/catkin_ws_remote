@@ -17,7 +17,7 @@ import message_filters
 # define callback functions for the ROS subscibers
 def xsens_com_callback(data):
     #print("in the calback ")
-    global xsens_com
+    global data_array
     #print(data.data)
     xsens_com = numpy.array(data.data)
     if len(xsens_com)!=9:
@@ -26,7 +26,7 @@ def xsens_com_callback(data):
     data_array = data_array[37:45]
     
 def xsens_joint_angle_callback(data):
-    global xsens_joint_angle  
+    global data_array  
     xsens_joint_angle = numpy.array(data.data)
     if len(xsens_joint_angle)!=24: 
         xsens_joint_angle = numpy.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=numpy.float32)  
@@ -34,28 +34,29 @@ def xsens_joint_angle_callback(data):
     data_array = data_array[13:37]
 
 def brain_callback(data):
-    global brain_data
+    global data_array
     brain_data = data.data
     
 def imu_callback(data):
-    global imu_data
+    global data_array
     #print("data: ")
-    print('local: ', data.accel_x)
+    #print('local: ', data.accel_x)
     #prev_imu_data = imu_data
-    imu_data = [data.accel_x, data.accel_y, data.accel_z, data.gyro_x, data.gyro_y, data.gyro_z, data.state, data.swing_time]
+    imu_data = numpy.array([data.accel_x, data.accel_y, data.accel_z, data.gyro_x, data.gyro_y, data.gyro_z, data.state, data.swing_time], dtype=numpy.float32)
     #if imu_data != prev_imu_data:
     #    prev_imu_data = imu_data
-    #print("imu_data: ")
-    data_array = data_array[5:12]
+    print("imu_data: ", imu_data)
+    data_array[5:13] = imu_data
+    print(data_array)
 
 def europa_callback(data):
-    global europa_data
+    global data_array
     europa_data = [data.mx, data.my, data.fz]
     #print(europa_data)
     data_array = data_array[2:4]
     
 def gui_cmd_callback(data):
-    global gui_cmd
+    global data_array
     # split data that is a string into a list of floats
     print(data.data)
     gui_cmd = [float(x) for x in str(data.data).split()] #list(float(str(data.data).split(',')))
@@ -86,7 +87,7 @@ def notes_callback(data):
      
         
 def gui_callback(data):
-    global record_button, filename, data_array, prev_record
+    global record_button, filename, data_array, prev_record, save
     #print(data.data)
     prev_record = record_button
     record_button = data.data[0]
@@ -96,9 +97,11 @@ def gui_callback(data):
         timestamp = time.strftime('%Y-%m-%d_%H-%M-%S', time.gmtime())
         filename = ('catkin_ws/src/talker_listener/data/data_{}.csv'.format(timestamp))
         print('file created')
+        save = True
+    else: save = False
        
 def data_save():
-    global record_button, filename, data_array
+    global record_button, filename, data_array, save
     
     #data_array = numpy.array([gui_cmd[0], gui_cmd[1], europa_data[0], europa_data[1], europa_data[2], imu_data[0], imu_data[1], imu_data[2], imu_data [3], imu_data[4], imu_data[5],  imu_data[6],  imu_data[7],
     #                xsens_joint_angle[0], xsens_joint_angle[1], xsens_joint_angle[2], xsens_joint_angle[3], xsens_joint_angle[4], xsens_joint_angle[5], xsens_joint_angle[6], xsens_joint_angle[7], 
@@ -106,7 +109,7 @@ def data_save():
     #                xsens_joint_angle[16], xsens_joint_angle[17], xsens_joint_angle[18], xsens_joint_angle[19], xsens_joint_angle[20], xsens_joint_angle[21], xsens_joint_angle[22], xsens_joint_angle[23],
     #                xsens_com[0],xsens_com[1],xsens_com[2],xsens_com[3],xsens_com[4],xsens_com[5],xsens_com[6], xsens_com[7],xsens_com[8]], dtype=numpy.float32)
     #print('global: ', data_array[5])
-    if bool(record_button):               
+    if bool(record_button) and save:               
         with open(filename, 'a') as f:
             # Save the headers only once when the file is opened
             if f.tell() == 0:
@@ -118,11 +121,12 @@ def data_save():
                 #['talker']#['Xsens', 'Brain', 'IMU', 'Europa']
                 f.write(','.join(headers) + '\n')
             f.write(','.join([str(x) for x in data_array]) + '\n')
-    return data_array
+    #return data_array
     
 def main():
-    global xsens_com_raw, xsens_joint_angle_raw, xsens_com, xsens_joint_angle, brain_data, imu_data, europa_data, record_button, talker_data, filename, notes, gui_cmd, prev_record
+    global xsens_com_raw, xsens_joint_angle_raw, xsens_com, xsens_joint_angle, brain_data, imu_data, europa_data, record_button, save, talker_data, filename, notes, gui_cmd, prev_record, data_array
     filename = ''
+    save = True
     notes = ''
     talker_data = numpy.array([0], dtype=numpy.float32)
     record_button = 0
@@ -134,7 +138,7 @@ def main():
     imu_data = numpy.array([0,0,0,0,0,0,0,0], dtype=numpy.float32)
     europa_data = numpy.array([0,0,0], dtype=numpy.float32)
     gui_cmd = numpy.array([0,0], dtype=numpy.float32) # str('0,0')
-    data_array = numpy.array([0], dtype=numpy.float32)
+    data_array = numpy.zeros(38, dtype=numpy.float32)
     prev_record = 0
       
     # Initialize the ROS node
@@ -155,13 +159,13 @@ def main():
     #rospy.Subscriber('processed_data', numpy_msg(Floats), processed_data_callback)
     
     ## Start the data publishing loop
-    rate = rospy.Rate(100) # 20Hz fastest I could go without having repeat rows in saving the data
+    rate = rospy.Rate(1) # 20Hz fastest I could go without having repeat rows in saving the data
     while not rospy.is_shutdown(): 
         # Publish the data array to the GUI node
         pub = rospy.Publisher('processed_data', numpy_msg(Floats), queue_size=10)
         #print(data_array)
-        data_array = data_save()
-        pub.publish(data_array)   
+        data_save()
+        #pub.publish(data_array)   
         rate.sleep()
 
 if __name__ == '__main__':
