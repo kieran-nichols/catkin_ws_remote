@@ -82,6 +82,7 @@ void CenterOfMassDatagram::printData() const
 {
 	ros::NodeHandle s;
 	ros::Publisher pub_xsens_com= s.advertise<std_msgs::Float32MultiArray>("xsens_com", 10);
+	ros::Rate rate(55); // 53,54,55 give 50.1 Hz
 
 	std_msgs::Float32MultiArray xsens_com;
 	//Clear array
@@ -108,5 +109,7 @@ void CenterOfMassDatagram::printData() const
 	
 	xsens_com.data = (vec);
 	pub_xsens_com.publish(xsens_com);
+	rate.sleep();
+	//XsTime::msleep(10);
 	ros::spinOnce();
 }

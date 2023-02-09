@@ -102,7 +102,7 @@ void JointAnglesDatagram::printData() const
 	//Clear array
 	xsens_joint_angle.data.clear();
 	std::vector<float> vec;
-
+	//ros::Rate rate(100);
 	//for (int i = 0; i < m_data.size(); i++)
 	for (int i = 14; i < 24; i++)
 	{
@@ -117,10 +117,13 @@ void JointAnglesDatagram::printData() const
 		
 		// add the x,y,z rotation of one joint to the end of the xsens_joint_angle array
 		// needed to convert each rotation into float using static_cast<float>()
-		vec.insert(vec.end(), { (m_data.at(i).rotation[0]), (m_data.at(i).rotation[1]), (m_data.at(i).rotation[2]) });
+		float parent = m_data.at(i).parent;
+		float child = m_data.at(i).child;
+		vec.insert(vec.end(), {parent,child, (m_data.at(i).rotation[0]), (m_data.at(i).rotation[1]), (m_data.at(i).rotation[2]) });
 	}
 	// publish xsens_joint_angle array which will contain about 63 items
 	xsens_joint_angle.data = (vec);
 	pub_xsens_joint_angle.publish(xsens_joint_angle);
 	ros::spinOnce();
+	//rate.sleep();
 }

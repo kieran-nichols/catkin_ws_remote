@@ -81,47 +81,47 @@ app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])#(__name__)
 # Main Dash app that processes and sorts the incoming ROS data and returns the appropiate scatter data that is added to the graphs
 # This callback is quicker with direct javascript code that is embedded in the triple quotations marks
 
-@app.callback(
-    [Output('live-graph', 'extendData')],
-    [Input('graph-update', 'n_intervals'), Input("dropdown0", "value"),   Input("dropdown1", "value"),  Input("dropdown2", "value"), State('store', 'children'),]
-    )
+#@app.callback(
+#    [Output('live-graph', 'extendData')],
+#    [Input('graph-update', 'n_intervals'), Input("dropdown0", "value"),  State('store', 'children'),] #  Input("dropdown1", "value"),  Input("dropdown2", "value"),
+#    )
 
-def update_graph_scatter(n_intervals, val0, val1, val2, data):    
-    resolution = 1000    
-    #print(data )
-    #x0 = [x/100 for x in data["x"]] # issue with itr type error # data["x"]
-    x0 = data["time"]
+#def update_graph_scatter(n_intervals, val0,  data):    # val1, val2,
+#    resolution = 1000    
+#    #print(data )
+#    #x0 = [x/100 for x in data["x"]] # issue with itr type error # data["x"]
+#    x0 = data["time"]
     
-    if val0==1:
-        y0 = data["x"]
-    else:    
-        y0 = data["y"]
+#    if val0==1:
+#        y0 = data["x"]
+#    else:    
+#        y0 = data["y"]
         
-    return [[dict(x=[x0], y=[y0]), [0], resolution]]
+#    return [[dict(x=[x0], y=[y0]), [0], resolution]]
 
-# Seondary callback function for ROS which Dash calls and it includes the fast_ros_dict_to_json, callback and init_variables functions
-@app.callback([ Output('store', 'children')],
-              [Input('graph-update', 'n_intervals')])
+### Seondary callback function for ROS which Dash calls and it includes the fast_ros_dict_to_json, callback and init_variables functions
+#@app.callback([ Output('store', 'children')],
+#              [Input('graph-update', 'n_intervals')])
 
-def fast_ros_dict_to_json(n_intervals):#, on, value): # try using Store to store the extra shared_dicts and n to eventually plot
-    #print(shared_dict)
-    return [dict(shared_dict)]#, f'Data is being recorded: {on}.', f'Notes taken: {value}' # need to return as list (rolleyes)
+#def fast_ros_dict_to_json(n_intervals):#, on, value): # try using Store to store the extra shared_dicts and n to eventually plot
+#    #print(shared_dict)
+#    return [dict(shared_dict)]#, f'Data is being recorded: {on}.', f'Notes taken: {value}' # need to return as list (rolleyes)
 
-def callback(data, args): #shared_dict, X, Y): # needed to convert to python float # this function is called at the publisher's freq (100 Hz)
-    args[1].append(data.data[0])
-    args[2].append(data.data[1])
-    args[3].append(rospy.Time.now().secs%60)
-    args[0]["x"] = list(args[1])
-    args[0]["y"] = list(args[2])
-    args[0]["time"] = list(args[3])
+#def callback(data, args): #shared_dict, X, Y): # needed to convert to python float # this function is called at the publisher's freq (100 Hz)
+#    args[1].append(data.data[0])
+#    args[2].append(data.data[1])
+#    args[3].append(rospy.Time.now().secs%60)
+#    args[0]["x"] = list(args[1])
+#    args[0]["y"] = list(args[2])
+#    args[0]["time"] = list(args[3])
     #print(args[0]["x"])
     
-def init_variables(shared_dict): # set up ROS subscibers
-    rospy.init_node('listener', anonymous=True)
-    # ROS subscriber to collect compiled data array from data processing node  
-    #rospy.Subscriber('chatter', numpy_msg(Floats), callback, (shared_dict, X, Y)) # added on shared_dict as an optional callback_arg parameter 
-    rospy.Subscriber('processed_data', numpy_msg(Floats), callback, (shared_dict, X, Y, time)) 
-    rospy.spin()
+#def init_variables(shared_dict): # set up ROS subscibers
+#    rospy.init_node('listener', anonymous=True)
+#    # ROS subscriber to collect compiled data array from data processing node  
+#    #rospy.Subscriber('chatter', numpy_msg(Floats), callback, (shared_dict, X, Y)) # added on shared_dict as an optional callback_arg parameter 
+#    rospy.Subscriber('processed_data', numpy_msg(Floats), callback, (shared_dict, X, Y, time)) 
+#    rospy.spin()
 
 # high-level callback for input widgets
 @app.callback(
@@ -187,28 +187,28 @@ def init_publisher(record,angle,notes):
 
 # Function for setting up the Dash graphical layout
 def setup_dash_app(shared_dict):
-    trace1 = go.Scatter(x=[], y=[], mode= 'lines')
-    trace2 = go.Scatter(x=[], y=[], mode= 'markers')
-    trace3 = go.Scatter(x=[], y=[], mode= 'markers')
-    figure = make_subplots(rows=3, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)
-    figure['layout'].update(height=600)                    
-    figure.add_trace(trace1, 1, 1)
-    figure.add_trace(trace1, 1, 1)
-    figure.add_trace(trace1, 1, 1) # three of the same traces to allow for up to 3 plots on the real time graph
-    figure.add_trace(trace2, 2, 1)
-    figure.add_trace(trace2, 2, 1)
-    figure.add_trace(trace2, 2, 1)
-    figure.add_trace(trace3, 3, 1)
-    figure.add_trace(trace3, 3, 1)
-    figure.add_trace(trace3, 3, 1)
+    #trace1 = go.Scatter(x=[], y=[], mode= 'lines')
+    #trace2 = go.Scatter(x=[], y=[], mode= 'markers')
+    #trace3 = go.Scatter(x=[], y=[], mode= 'markers')
+    #figure = make_subplots(rows=3, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)
+    #figure['layout'].update(height=600)                    
+    #figure.add_trace(trace1, 1, 1)
+    #figure.add_trace(trace1, 1, 1)
+    #figure.add_trace(trace1, 1, 1) # three of the same traces to allow for up to 3 plots on the real time graph
+    #figure.add_trace(trace2, 2, 1)
+    #figure.add_trace(trace2, 2, 1)
+    #figure.add_trace(trace2, 2, 1)
+    #figure.add_trace(trace3, 3, 1)
+    #figure.add_trace(trace3, 3, 1)
+    #figure.add_trace(trace3, 3, 1)
 
-    figure['layout']['xaxis']['title']='Real-time'
-    figure['layout']['yaxis']['title']='TADA Metric'
-    figure['layout']['xaxis2']['title']='Stride frame number'
-    figure['layout']['yaxis2']['title']='TADA Metric'
-    figure['layout']['xaxis3']['title']='TADA Ankle Angle'
-    figure['layout']['yaxis3']['title']='TADA Metric'
-    figure = figure
+    #figure['layout']['xaxis']['title']='Real-time'
+    #figure['layout']['yaxis']['title']='TADA Metric'
+    #figure['layout']['xaxis2']['title']='Stride frame number'
+    #figure['layout']['yaxis2']['title']='TADA Metric'
+    #figure['layout']['xaxis3']['title']='TADA Ankle Angle'
+    #figure['layout']['yaxis3']['title']='TADA Metric'
+    #figure = figure
     
     figure_polar = go.Figure()
     figure_p = go.Scatter(x=[0], y=[0], mode= 'lines+markers', name='Polar graph', marker=dict(symbol="arrow", size=15, angleref="previous",color=colors[0])) #, line=dict(color=colors))
@@ -259,15 +259,15 @@ def setup_dash_app(shared_dict):
                               html.Div(children=[dcc.Textarea(rows=3, id="notes-input", placeholder="Notes"), html.Div(id='notes-result')], style={"width": "50%",'paddingBottom':'1rem'}),
                                  ], style=dict(display='flex')), 
 
-                    html.Div(children=[
-                        html.Div(children=[dcc.Dropdown(options = [{"label": "empty", "value": 0}, {"label": "ankle_angle", "value": 1}, {"label": "imu_ang_vel", "value": 2}],value=0, id="dropdown0")],style={"width": "33%", 'textAlign': 'center'}),
-                        html.Div(children=[dcc.Dropdown(options = [{"label": "empty", "value": 0},{"label": "ankle_angle", "value": 1}, {"label": "imu_ang_vel", "value": 2}], value=0,id="dropdown1")],style={"width": "33%", 'textAlign': 'center'}),
-                        html.Div(children=[dcc.Dropdown(options = [{"label": "empty", "value": 0}, {"label": "ankle_angle", "value": 1}, {"label": "imu_ang_vel", "value": 2}],value=0, id="dropdown2")],style={"width": "33%", 'textAlign': 'center'} )
-                        ]
-                        , style=dict(display='flex')), 
+                    #html.Div(children=[
+                    #    html.Div(children=[dcc.Dropdown(options = [{"label": "empty", "value": 0}, {"label": "ankle_angle", "value": 1}, {"label": "imu_ang_vel", "value": 2}],value=0, id="dropdown0")],style={"width": "33%", 'textAlign': 'center'}),
+                    ##    html.Div(children=[dcc.Dropdown(options = [{"label": "empty", "value": 0},{"label": "ankle_angle", "value": 1}, {"label": "imu_ang_vel", "value": 2}], value=0,id="dropdown1")],style={"width": "33%", 'textAlign': 'center'}),
+                    ##    html.Div(children=[dcc.Dropdown(options = [{"label": "empty", "value": 0}, {"label": "ankle_angle", "value": 1}, {"label": "imu_ang_vel", "value": 2}],value=0, id="dropdown2")],style={"width": "33%", 'textAlign': 'center'} )
+                    #    ]
+                    #    , style=dict(display='flex')), 
                     
-                    dcc.Graph(id = 'live-graph', figure=figure),
-		            dcc.Interval(id = 'graph-update', interval = 500, n_intervals = 0), # 200ms seems to be the fastest with ROS; interval does not work reliably under 50 ms giving 20 Hz samp_freq, the fastest samp_freq seems to be 22 Hz
+              #      dcc.Graph(id = 'live-graph', figure=figure),
+		            #dcc.Interval(id = 'graph-update', interval = 500, n_intervals = 0), # 200ms seems to be the fastest with ROS; interval does not work reliably under 50 ms giving 20 Hz samp_freq, the fastest samp_freq seems to be 22 Hz
                     dcc.Store(id='storage', data=[0])  ,
                     dcc.Store(id='storage_theta_alpha', data=[0])  ,
                     dcc.Store(id='store', data=dict(shared_dict))  ,
@@ -297,8 +297,8 @@ if __name__ == '__main__':
     setup_dash_app(shared_dict)
 
     # Give a separate process to the ROS subscribers
-    p1 = Process(target=init_variables, args=(shared_dict,))
-    p1.start()#; p1.join()
+    #p1 = Process(target=init_variables, args=(shared_dict,))
+    #p1.start()#; p1.join()
     #init_variables()
     
     # Give a separate process to the ROS publishers
