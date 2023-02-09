@@ -38,6 +38,9 @@ int main(int argc, char *argv[])
 	ros::NodeHandle s;
 	ros::Publisher pub_xsens_com = s.advertise<std_msgs::Float32MultiArray>("xsens_com", 10);
 	ros::Publisher pub_xsens_joint_angle = s.advertise<std_msgs::Float32MultiArray>("xsens_joint_angle", 10);
+	ros::Publisher pub_xsens_angular_moments = s.advertise<std_msgs::Float32MultiArray>("angular_moments", 10);
+	ros::Publisher pub_xsens_linear_moments = s.advertise<std_msgs::Float32MultiArray>("linear_moments", 10);
+
 	//ros::spinOnce();
 
 	std::string hostDestinationAddress = "localhost";

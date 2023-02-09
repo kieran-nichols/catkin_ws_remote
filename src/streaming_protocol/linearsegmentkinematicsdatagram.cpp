@@ -25,7 +25,12 @@
 */
 
 #include "linearsegmentkinematicsdatagram.h"
-
+#include "udpserver.h"
+#include "streamer.h"
+#include <conio.h>
+#include <xstypes/xstime.h>
+#include "ros/ros.h"
+#include "std_msgs/Float32MultiArray.h"
 /*! \class LinearSegmentKinematicsDatagram
 	\brief a Linear Segment Kinematics datagram (type 0x21)
 
@@ -93,8 +98,23 @@ void LinearSegmentKinematicsDatagram::deserializeData(Streamer &inputStreamer)
 */
 void LinearSegmentKinematicsDatagram::printData() const
 {
-	for (int i = 0; i < m_data.size(); i++)
+	ros::NodeHandle s;
+	ros::Publisher pub_linear_moments = s.advertise<std_msgs::Float32MultiArray>("linear_moments", 10);
+	std_msgs::Float32MultiArray linear_moments;
+	//Clear array
+	linear_moments.data.clear();
+	std::vector<float> vec;
+
+	float who = m_data.at(0).segmentId;
+
+	vec.insert(vec.end(), { who, m_data.at(0).acceleration[0], m_data.at(0).acceleration[1],m_data.at(0).acceleration[2] });
+
+	for (int i = 14; i < m_data.size(); i++)
 	{
+		float who = m_data.at(i).segmentId;
+
+		vec.insert(vec.end(), { who, m_data.at(i).acceleration[0], m_data.at(i).acceleration[1],m_data.at(i).acceleration[2] });
+		/*
 		std::cout << "Segment ID: " << m_data.at(i).segmentId << std::endl;
 		// Segment Position
 		std::cout << "Segment Position: " << "(";
@@ -113,5 +133,9 @@ void LinearSegmentKinematicsDatagram::printData() const
 		std::cout << "x: " << m_data.at(i).acceleration[0] << ", ";
 		std::cout << "y: " << m_data.at(i).acceleration[1] << ", ";
 		std::cout << "z: " << m_data.at(i).acceleration[2] << ")"<< std::endl << std::endl;
+		*/
 	}
+	linear_moments.data = (vec);
+	pub_linear_moments.publish(linear_moments);
+	ros::spinOnce();
 }

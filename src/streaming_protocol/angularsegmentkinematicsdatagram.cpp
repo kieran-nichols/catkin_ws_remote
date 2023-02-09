@@ -27,6 +27,13 @@
 #include "angularsegmentkinematicsdatagram.h"
 #include <xstypes/xsmath.h>
 
+#include "udpserver.h"
+#include "streamer.h"
+#include <conio.h>
+#include <xstypes/xstime.h>
+#include "ros/ros.h"
+#include "std_msgs/Float32MultiArray.h"
+
 /*! \class AngularSegmentKinematicsDatagram
 	\brief a Angular Kinematics datagram (type 0x22)
 
@@ -104,8 +111,25 @@ void AngularSegmentKinematicsDatagram::deserializeData(Streamer &inputStreamer)
 */
 void AngularSegmentKinematicsDatagram::printData() const
 {
-	for (int i = 0; i < m_data.size(); i++)
+	ros::NodeHandle s;
+	ros::Publisher pub_angular_moments = s.advertise<std_msgs::Float32MultiArray>("angular_moments", 10);
+	std_msgs::Float32MultiArray angular_moments;
+	angular_moments.data.clear();
+
+	std::vector<float> vec;
+
+	float who = m_data.at(0).segmentId;
+
+	vec.insert(vec.end(), { who, m_data.at(0).angularVeloc[0], m_data.at(0).angularVeloc[1],m_data.at(0).angularVeloc[2],
+		m_data.at(0).angularAccel[0],m_data.at(0).angularAccel[1], m_data.at(0).angularAccel[2] });
+	
+	for (int i = 14; i < m_data.size(); i++)
 	{
+		float who = m_data.at(i).segmentId;
+		vec.insert(vec.end(), { who, m_data.at(i).angularVeloc[0], m_data.at(i).angularVeloc[1],m_data.at(i).angularVeloc[2],
+			m_data.at(i).angularAccel[0],m_data.at(i).angularAccel[1], m_data.at(i).angularAccel[2]});
+
+		/*
 		std::cout << "Segment ID: " << m_data.at(i).segmentId << std::endl;
 		// Segment orientation quaternion
 		std::cout << "Segment orientation: " << "(";
@@ -125,5 +149,10 @@ void AngularSegmentKinematicsDatagram::printData() const
 		std::cout << "x: " << m_data.at(i).angularAccel[0] << ", ";
 		std::cout << "y: " << m_data.at(i).angularAccel[1] << ", ";
 		std::cout << "z: " << m_data.at(i).angularAccel[2] << ")"<< std::endl << std::endl;
+		*/
 	}
+	angular_moments.data = (vec);
+	pub_angular_moments.publish(angular_moments);
+	ros::spinOnce();
+	
 }
