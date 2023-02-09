@@ -109,8 +109,11 @@ void LinearSegmentKinematicsDatagram::printData() const
 
 	vec.insert(vec.end(), { who, m_data.at(0).acceleration[0], m_data.at(0).acceleration[1],m_data.at(0).acceleration[2] });
 
-	for (int i = 14; i < m_data.size(); i++)
+	for (int i = 15; i < 22; i++)
 	{
+		if (i == 18) {
+			continue;
+		}
 		float who = m_data.at(i).segmentId;
 
 		vec.insert(vec.end(), { who, m_data.at(i).acceleration[0], m_data.at(i).acceleration[1],m_data.at(i).acceleration[2] });

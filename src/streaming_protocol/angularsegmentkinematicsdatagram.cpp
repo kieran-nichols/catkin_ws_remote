@@ -123,8 +123,11 @@ void AngularSegmentKinematicsDatagram::printData() const
 	vec.insert(vec.end(), { who, m_data.at(0).angularVeloc[0], m_data.at(0).angularVeloc[1],m_data.at(0).angularVeloc[2],
 		m_data.at(0).angularAccel[0],m_data.at(0).angularAccel[1], m_data.at(0).angularAccel[2] });
 	
-	for (int i = 14; i < m_data.size(); i++)
+	for (int i = 15; i < 22; i++)
 	{
+		if (i == 18) {
+			continue;
+		}
 		float who = m_data.at(i).segmentId;
 		vec.insert(vec.end(), { who, m_data.at(i).angularVeloc[0], m_data.at(i).angularVeloc[1],m_data.at(i).angularVeloc[2],
 			m_data.at(i).angularAccel[0],m_data.at(i).angularAccel[1], m_data.at(i).angularAccel[2]});
