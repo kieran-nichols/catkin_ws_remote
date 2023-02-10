@@ -1,4 +1,4 @@
-prefix=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/install
+prefix=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/install
 
 Name: tada_ros
 Description: Description of tada_ros

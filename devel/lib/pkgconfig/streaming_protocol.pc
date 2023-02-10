@@ -1,4 +1,4 @@
-prefix=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel
+prefix=C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/devel
 
 Name: streaming_protocol
 Description: Description of streaming_protocol

@@ -67,14 +67,14 @@ set(streaming_protocol_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(streaming_protocol_SOURCE_PREFIX C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/src/streaming_protocol)
-  set(streaming_protocol_DEVEL_PREFIX C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel)
+  set(streaming_protocol_SOURCE_PREFIX C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/src/streaming_protocol)
+  set(streaming_protocol_DEVEL_PREFIX C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/devel)
   set(streaming_protocol_INSTALL_PREFIX "")
   set(streaming_protocol_PREFIX ${streaming_protocol_DEVEL_PREFIX})
 else()
   set(streaming_protocol_SOURCE_PREFIX "")
   set(streaming_protocol_DEVEL_PREFIX "")
-  set(streaming_protocol_INSTALL_PREFIX C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/install)
+  set(streaming_protocol_INSTALL_PREFIX C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/install)
   set(streaming_protocol_PREFIX ${streaming_protocol_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/install/lib;C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel/lib;c:/opt/ros/noetic/x64/lib)
+    foreach(path C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/install/lib;C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel/lib;c:/opt/ros/noetic/x64/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

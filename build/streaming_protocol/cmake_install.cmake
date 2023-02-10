@@ -1,8 +1,8 @@
-# Install script for directory: C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/src/streaming_protocol
+# Install script for directory: C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/src/streaming_protocol
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/install")
+  set(CMAKE_INSTALL_PREFIX "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -33,25 +33,25 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/build/streaming_protocol/catkin_generated/installspace/streaming_protocol.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/build/streaming_protocol/catkin_generated/installspace/streaming_protocol.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/streaming_protocol/cmake" TYPE FILE FILES
-    "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/build/streaming_protocol/catkin_generated/installspace/streaming_protocolConfig.cmake"
-    "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/build/streaming_protocol/catkin_generated/installspace/streaming_protocolConfig-version.cmake"
+    "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/build/streaming_protocol/catkin_generated/installspace/streaming_protocolConfig.cmake"
+    "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/build/streaming_protocol/catkin_generated/installspace/streaming_protocolConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/streaming_protocol" TYPE FILE FILES "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/src/streaming_protocol/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/streaming_protocol" TYPE FILE FILES "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/src/streaming_protocol/package.xml")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE EXECUTABLE FILES "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel/lib/streaming_protocol/streaming_protocol_node.exe")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE EXECUTABLE FILES "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/devel/lib/streaming_protocol/streaming_protocol_node.exe")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/streaming_protocol" TYPE EXECUTABLE FILES "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel/lib/streaming_protocol/streaming_protocol_node.exe")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/streaming_protocol" TYPE EXECUTABLE FILES "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/devel/lib/streaming_protocol/streaming_protocol_node.exe")
 endif()
 

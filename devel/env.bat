@@ -6,6 +6,6 @@ if "%1"=="" (
   echo "Calling env.bat without arguments is not supported anymore. Instead spawn a subshell and source a setup file manually."
   exit 1
 ) else (
-  call "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel/setup.bat"
+  call "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/devel/setup.bat"
   %*
 )

@@ -4,5 +4,5 @@ PROJECT_PKG_CONFIG_INCLUDE_DIRS = "${prefix}/include".split(';') if "${prefix}/i
 PROJECT_CATKIN_DEPENDS = "".replace(';', ' ')
 PKG_CONFIG_LIBRARIES_WITH_PREFIX = "".split(';') if "" != "" else []
 PROJECT_NAME = "tada_ros"
-PROJECT_SPACE_DIR = "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/install"
+PROJECT_SPACE_DIR = "C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/install"
 PROJECT_VERSION = "0.0.0"

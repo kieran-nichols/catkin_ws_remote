@@ -48,20 +48,11 @@ int main(int argc, char *argv[])
 	int port = 8000;
 
 	UdpServer udpServer(hostDestinationAddress, (uint16_t)port);
-<<<<<<< HEAD
 
 	while (!_kbhit())
 		//XsTime::msleep(1);
 		//rate.sleep();
 		continue;
-=======
-	ros::Rate rate(100); // ROS Rate at 5Hz
-	while (!_kbhit()) {
-		//XsTime::msleep(10);
-		//rate.sleep();
-		continue;
-	}
->>>>>>> 3dacb7ed593726c304e741b6b452ea6ddf3847e9
 
 	return 0;
 }

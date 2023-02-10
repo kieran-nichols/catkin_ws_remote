@@ -3,7 +3,7 @@
 # generated from catkin/cmake/template/script.py.in
 # creates a relay to a python script source file, acting as that file.
 # The purpose is that of a symlink
-python_script = 'C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/src/tada-ros/src/tada_ros/sensors/IMU_controller.py'
+python_script = 'C:/Users/the1k/source/repos/PythonApplication1/catkin_ws_remote/src/tada-ros/src/tada_ros/sensors/IMU_controller.py'
 with open(python_script, 'r') as fh:
     context = {
         '__builtins__': __builtins__,
