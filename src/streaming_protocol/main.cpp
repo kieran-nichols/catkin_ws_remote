@@ -58,8 +58,8 @@ int main(int argc, char *argv[])
 	ros::Rate rate(100); // ROS Rate at 5Hz
 	while (!_kbhit()) {
 		//XsTime::msleep(10);
-		rate.sleep();
-		//continue;
+		//rate.sleep();
+		continue;
 	}
 >>>>>>> 3dacb7ed593726c304e741b6b452ea6ddf3847e9
 

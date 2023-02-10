@@ -31,6 +31,10 @@
 #include <iostream>
 #include <vector>
 #include "std_msgs/Float32MultiArray.h"
+#include <chrono>
+#include <cstdint>
+#include <iostream>
+
 
 /*! \class JointAnglesDatagram
 	\brief a Joint Angle datagram (type 0x20)
@@ -91,8 +95,10 @@ void JointAnglesDatagram::deserializeData(Streamer &inputStreamer)
 		
 }
 
+
 /*! Print Data datagram in a formatted way
 */
+using namespace std::chrono;
 void JointAnglesDatagram::printData() const
 {
 	ros::NodeHandle s;
@@ -102,7 +108,25 @@ void JointAnglesDatagram::printData() const
 	//Clear array
 	xsens_joint_angle.data.clear();
 	std::vector<float> vec;
-	//ros::Rate rate(100);
+
+	/////////////////////////time
+	time_t now;
+	//std::string currentTime;
+
+	now = std::time(0);
+	//urrentTime = std::time(&now);
+	time_t mnow = now ;
+
+	float final_time = mnow%1000000;
+	//std::cout.precision(20);
+	//std::cout << (final_time) << std::endl;
+
+	///////////////////////////////////
+	
+	vec.insert(vec.end(), { final_time });
+
+	ros::Rate rate(100); // ROS Rate at 5Hz
+
 	//for (int i = 0; i < m_data.size(); i++)
 	for (int i = 14; i < 24; i++)
 	{
@@ -122,6 +146,11 @@ void JointAnglesDatagram::printData() const
 		vec.insert(vec.end(), {parent,child, (m_data.at(i).rotation[0]), (m_data.at(i).rotation[1]), (m_data.at(i).rotation[2]) });
 	}
 	// publish xsens_joint_angle array which will contain about 63 items
+	
+	
+	//adding time
+	
+
 	xsens_joint_angle.data = (vec);
 	pub_xsens_joint_angle.publish(xsens_joint_angle);
 	ros::spinOnce();

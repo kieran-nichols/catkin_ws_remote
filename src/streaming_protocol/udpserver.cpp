@@ -77,6 +77,7 @@ void UdpServer::readMessages()
 
 		buffer.clear();
 		//XsTime::msleep(1);
+
 		//ros::Rate rate(100); // no, not here, it'll be too slow and variable
 		//rate.sleep();
 	}
@@ -102,10 +103,9 @@ void UdpServer::stopThread()
 	if (!m_started)
 		return;
 	m_stopping = true;
-	while (m_started){
-		//ros::Rate rate(100);
-		//rate.sleep();
-		//XsTime::msleep(1);
+
+	while (m_started)
+		//XsTime::msleep(10);
 		continue;
-	}
+
 }
