@@ -108,6 +108,7 @@ void JointAnglesDatagram::printData() const
 	//Clear array
 	xsens_joint_angle.data.clear();
 	std::vector<float> vec;
+
 	/////////////////////////time
 	time_t now;
 	//std::string currentTime;
@@ -125,6 +126,7 @@ void JointAnglesDatagram::printData() const
 	vec.insert(vec.end(), { final_time });
 
 	ros::Rate rate(100); // ROS Rate at 5Hz
+
 	//for (int i = 0; i < m_data.size(); i++)
 	for (int i = 14; i < 24; i++)
 	{
@@ -152,5 +154,5 @@ void JointAnglesDatagram::printData() const
 	xsens_joint_angle.data = (vec);
 	pub_xsens_joint_angle.publish(xsens_joint_angle);
 	ros::spinOnce();
-	rate.sleep();
+	//rate.sleep();
 }
