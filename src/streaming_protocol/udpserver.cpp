@@ -76,7 +76,7 @@ void UdpServer::readMessages()
 			m_parserManager->readDatagram(buffer);
 
 		buffer.clear();
-		XsTime::msleep(1);
+		//XsTime::msleep(1);
 	}
 
 	std::cout << "Stopping receiving packets..." << std::endl << std::endl;
@@ -101,5 +101,6 @@ void UdpServer::stopThread()
 		return;
 	m_stopping = true;
 	while (m_started)
-		XsTime::msleep(10);
+		//XsTime::msleep(10);
+		continue;
 }

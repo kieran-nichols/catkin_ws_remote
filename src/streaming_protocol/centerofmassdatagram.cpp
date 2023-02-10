@@ -87,6 +87,21 @@ void CenterOfMassDatagram::printData() const
 	//Clear array
 	xsens_com.data.clear();
 	std::vector<float> vec;
+	/////////////////////////time
+	time_t now;
+	//std::string currentTime;
+
+	now = std::time(0);
+	//urrentTime = std::time(&now);
+	time_t mnow = now;
+
+	float final_time = mnow % 1000000;
+	//std::cout.precision(20);
+	//std::cout << (final_time) << std::endl;
+
+	///////////////////////////////////
+	vec.insert(vec.end(), { final_time });
+
 	vec.insert(vec.end(), { m_pos[0], m_pos[1], m_pos[2], 
 		m_vel[0], m_vel[1], m_vel[2],
 		m_acc[0], m_acc[1], m_acc[2] });

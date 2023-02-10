@@ -104,6 +104,22 @@ void LinearSegmentKinematicsDatagram::printData() const
 	//Clear array
 	linear_moments.data.clear();
 	std::vector<float> vec;
+	ros::Rate rate(100); // ROS Rate at 5Hz
+	/////////////////////////time
+	time_t now;
+	//std::string currentTime;
+
+	now = std::time(0);
+	//urrentTime = std::time(&now);
+	time_t mnow = now;
+
+	float final_time = mnow % 1000000;
+	//std::cout.precision(20);
+	//std::cout << (final_time) << std::endl;
+
+	///////////////////////////////////
+
+	vec.insert(vec.end(), { final_time });
 
 	float who = m_data.at(0).segmentId;
 
@@ -141,4 +157,5 @@ void LinearSegmentKinematicsDatagram::printData() const
 	linear_moments.data = (vec);
 	pub_linear_moments.publish(linear_moments);
 	ros::spinOnce();
+	rate.sleep();
 }

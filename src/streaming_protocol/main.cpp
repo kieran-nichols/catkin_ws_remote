@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
 	ros::Rate rate(100); // ROS Rate at 5Hz
 	while (!_kbhit()) {
 		//XsTime::msleep(10);
-		rate.sleep();
-		//continue;
+		//rate.sleep();
+		continue;
 	}
 
 	return 0;
