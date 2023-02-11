@@ -8,6 +8,8 @@ import plotly.graph_objs as go
 from plotly.colors import sequential
 from scipy.signal import find_peaks
 import time
+from plotly.subplots import make_subplots
+import types
 
 # find all files with '.bag' in name
 path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\for_bags"
@@ -20,9 +22,10 @@ colors = ['red', 'blue', 'green']
 TADA_angles = ['0, 180', '10, 0', '10, 180', '10, 90', '10, n90']
 figure = go.Figure()
 figure1 = go.Figure()
-figure2 = go.Figure()
+figure2 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)        
 color_dict = dict(zip(['slow', 'med', 'fast'], colors))
-
+moments = {'mx':[], 'my':[]}
+#print(moments)
 condition_dict = dict(zip(['slow', 'med', 'fast'], colors))
 TADA_angle_dict = dict(zip(TADA_angles, ['Neutral', 'PF', 'DF', 'EV', 'IV']))
 #print(color_dict)
@@ -45,8 +48,6 @@ for i, file in enumerate(files):
     speed = last_item[0]
     #print(condition, speed)
     
-    #figure.data = []
-    
     # Execute the command and retrieve the output
     #subprocess.run('rostopic echo -b {} -p /europa_topic > data_kn/europa_topic_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)
     # read the data from the file
@@ -56,55 +57,63 @@ for i, file in enumerate(files):
     #time = data.time
     real_time = (data.time - data.time[0])/1_000_000_000
     #print(time)
-    moment = data.field_my
+    moments['mx'] = data.field_mx
+    moments['my'] = data.field_my
     all_real_time.append(real_time)
-    all_moment.append(moment)
+    peak_avg_array = []
+    condition_array = []
+    #all_moment.append(moment)
 
     ### plot the data
     ##fig = px.line(x=time, y=moment)
     ##fig.update_layout(title_text=file)
     ##fig.show()
-
-    ## find the peak
-    all_peaks, _ = find_peaks(moment, height=300, distance=50)
-    # pick the middle three peaks
-    peaks = all_peaks[len(all_peaks) // 2 - 1: len(all_peaks) // 2 + 2]
-    #all_peaks.append((peaks))
-    #print(len(peaks))
+    #print(moments.values())
+    for j,moment in enumerate(moments.values()):
+        #print(i,j)
+        ## find the peak
+        #print(moment)
+        all_peaks, _ = find_peaks(moment, height=300, distance=50)
+        # pick the middle three peaks
+        peaks = all_peaks[len(all_peaks) // 2 - 1: len(all_peaks) // 2 + 2]
+        #all_peaks.append((peaks))
+        #print(len(peaks))
     
-    #print(f"Peak for {file}: {peak_time}s, {peak_moment}")
-
-    figure.add_trace(go.Scatter(x=real_time, y=moment, mode='lines'))
-    figure.add_trace(go.Scatter(x=real_time[peaks], y=moment[peaks], mode='markers'))
+        #figure.data = []
+        figure.add_trace(go.Scatter(x=real_time, y=moment, mode='lines'))
+        figure.add_trace(go.Scatter(x=real_time[peaks], y=moment[peaks], mode='markers'))
     
-    #print(color_dict[speed])
-    condition_list = [condition]*len(peaks)
-    speed_list = [speed]*len(peaks)
-    #print(condition_list, speed_list)
-    figure1.add_trace(go.Scatter(x=condition_list, y=moment[peaks], mode='markers', name=speed, marker_color=color_dict[speed]))
+        #print(color_dict[speed])
+        condition_list = [condition]*len(peaks)
+        speed_list = [speed]*len(peaks)
+        #print(condition_list, speed_list)
+        #figure1.add_trace(go.Scatter(x=condition_list, y=moment[peaks], mode='markers', name=speed, marker_color=color_dict[speed]))
+        figure2.add_trace(go.Scatter(x=condition_list, y=moment[peaks], mode='markers', name=speed, marker_color=color_dict[speed]),j+1,1)
     
-    peak_avg = np.mean(moment[peaks])
-    figure1.add_trace(go.Scatter(x=[condition], y=[peak_avg], mode='markers', name=speed, marker=dict(color=color_dict[speed], size=20, symbol = 'square')))
-    #break
-    #figure.show()
-    #figure1.show()
-    #time.sleep(2)
-    
-    
-### add markers for each peak
-#for (peak_time, peak_value) in all_peaks:
-#    figure.add_trace(
-#        go.Scatter(mode='markers', x=[peak_time], y=[peak_value], line=dict(color='red', width=100))
-#    )
-#print(all_peaks)
+        peak_avg = np.mean(moment[peaks])
+        #peak_avg_array.append(peak_avg)
+        #condition_array.append(condition)
+        
+        trace = go.Scatter(x=[condition], y=[peak_avg], mode='markers', name=speed, marker=dict(color=color_dict[speed], size=10, symbol = 'diamond'))
+        #figure1.add_trace(trace)
+        figure2.add_trace(trace,j+1,1)
+        #break
+        #figure.show()
+        #figure1.show()
+        #time.sleep(2)
 
 #fig.update_layout(title_text="All Files with Peaks")
 #figure.show()
-figure1.show()
+#figure.add_trace(go.Scatter(x=condition_array, y=peak_avg_array, mode='lines', name='peak_avg_array'))
+#figure.add_trace(go.Scatter(x=condition_array, y=peak_avg_array, mode='markers', name='peak_avg_array'))
+figure2.update_layout(title_text="Average Moment Peaks for a given speed")
+figure2.update_layout(xaxis1_title="TADA angle (anatomical angle)", yaxis_title="Frontal Moment (N*m)")
+figure2.update_layout(xaxis2_title="TADA angle (anatomical angle)", yaxis2_title="Sagittal Moment (N*m)")
+figure2.update_layout(legend_title="Speed (m/s)")
+#figure.update_layout(legend=dict(x='slow', y='medium',z='fast'))
+#figure1.show()
+figure2.show()
 
-## find the middle three peaks
-## (assuming there are more than three files)
-#middle_peaks = all_peaks[len(all_peaks) // 2 - 1: len(all_peaks) // 2 + 2]
-#print(f"Middle three peaks: {middle_peaks}")
+
 
 
