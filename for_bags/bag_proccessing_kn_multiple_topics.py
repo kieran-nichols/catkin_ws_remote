@@ -12,7 +12,8 @@ from plotly.subplots import make_subplots
 import types
 
 # find all files with '.bag' in name
-path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\for_bags"
+#path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\for_bags"
+path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\for_bags2"
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
 #print(files, "\nlist_length= ", len(files))
 all_real_time = []
@@ -54,7 +55,8 @@ speed_array = []
     #subprocess.run('rostopic echo -b {} -p /sensing_topic > data_kn/sensing_topic_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)  
     
 for i, file in enumerate(files): 
-    if i>= 15: break
+    #if i>= 15: break
+    if i>= 4: break
     #print(file)
     description = file.split('_')
     #print(description)
@@ -119,7 +121,7 @@ for i, file in enumerate(files):
         figure.add_trace(go.Scatter(x=real_time, y=moment, mode='lines'))
         figure.add_trace(go.Scatter(x=real_time[peaks], y=moment[peaks], mode='markers'))
         figure.add_trace(go.Scatter(x=real_time1, y=-10*imu_data['gyro_z'], mode='lines'))
-        figure.add_trace(go.Scatter(x=real_time1[shift_index:], y=-20*imu_data['gyro_z'][shift_index:], mode='lines'))
+        #figure.add_trace(go.Scatter(x=real_time1[shift_index:], y=-20*imu_data['gyro_z'][shift_index:], mode='lines'))
     
         #print(color_dict[speed])
         condition_list = [condition]*len(peaks)
