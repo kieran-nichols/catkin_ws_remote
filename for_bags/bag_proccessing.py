@@ -18,5 +18,5 @@ df5 = pd.read_csv('europa_topic.csv')
 df6 = pd.read_csv('sensing_topic.csv')
 
 merged_df = pd.concat([df1, df2,df3, df4, df5, df6], axis=1)
-#merged_df.to_csv('result.csv', index=False)
+merged_df.to_csv('result.csv', index=False)
 #os.remove('test2.csv')

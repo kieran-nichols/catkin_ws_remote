@@ -26,12 +26,14 @@ struct EuropaMsg_
   EuropaMsg_()
     : mx(0.0)
     , my(0.0)
-    , fz(0.0)  {
+    , fz(0.0)
+    , t(0.0)  {
     }
   EuropaMsg_(const ContainerAllocator& _alloc)
     : mx(0.0)
     , my(0.0)
-    , fz(0.0)  {
+    , fz(0.0)
+    , t(0.0)  {
   (void)_alloc;
     }
 
@@ -45,6 +47,9 @@ struct EuropaMsg_
 
    typedef double _fz_type;
   _fz_type fz;
+
+   typedef double _t_type;
+  _t_type t;
 
 
 
@@ -77,7 +82,8 @@ bool operator==(const ::tada_ros::EuropaMsg_<ContainerAllocator1> & lhs, const :
 {
   return lhs.mx == rhs.mx &&
     lhs.my == rhs.my &&
-    lhs.fz == rhs.fz;
+    lhs.fz == rhs.fz &&
+    lhs.t == rhs.t;
 }
 
 template<typename ContainerAllocator1, typename ContainerAllocator2>
@@ -134,12 +140,12 @@ struct MD5Sum< ::tada_ros::EuropaMsg_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "0595798c82dfd4a66519a6b930678e87";
+    return "5c9da1dd517ee166f38f63eacb3ba095";
   }
 
   static const char* value(const ::tada_ros::EuropaMsg_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0x0595798c82dfd4a6ULL;
-  static const uint64_t static_value2 = 0x6519a6b930678e87ULL;
+  static const uint64_t static_value1 = 0x5c9da1dd517ee166ULL;
+  static const uint64_t static_value2 = 0xf38f63eacb3ba095ULL;
 };
 
 template<class ContainerAllocator>
@@ -161,6 +167,7 @@ struct Definition< ::tada_ros::EuropaMsg_<ContainerAllocator> >
     return "float64 mx\n"
 "float64 my\n"
 "float64 fz\n"
+"float64 t\n"
 ;
   }
 
@@ -182,6 +189,7 @@ namespace serialization
       stream.next(m.mx);
       stream.next(m.my);
       stream.next(m.fz);
+      stream.next(m.t);
     }
 
     ROS_DECLARE_ALLINONE_SERIALIZER
@@ -206,6 +214,8 @@ struct Printer< ::tada_ros::EuropaMsg_<ContainerAllocator> >
     Printer<double>::stream(s, indent + "  ", v.my);
     s << indent << "fz: ";
     Printer<double>::stream(s, indent + "  ", v.fz);
+    s << indent << "t: ";
+    Printer<double>::stream(s, indent + "  ", v.t);
   }
 };
 

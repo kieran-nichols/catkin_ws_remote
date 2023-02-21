@@ -115,6 +115,7 @@ void AngularSegmentKinematicsDatagram::printData() const
 	ros::Publisher pub_angular_moments = s.advertise<std_msgs::Float32MultiArray>("angular_moments", 10);
 	std_msgs::Float32MultiArray angular_moments;
 	angular_moments.data.clear();
+	//ros::Rate rate(100);
 
 	std::vector<float> vec;
 	/////////////////////////time
@@ -171,5 +172,6 @@ void AngularSegmentKinematicsDatagram::printData() const
 	angular_moments.data = (vec);
 	pub_angular_moments.publish(angular_moments);
 	ros::spinOnce();
+	//rate.sleep();
 	
 }

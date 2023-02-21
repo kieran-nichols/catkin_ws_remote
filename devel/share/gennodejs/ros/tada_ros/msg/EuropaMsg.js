@@ -21,6 +21,7 @@ class EuropaMsg {
       this.mx = null;
       this.my = null;
       this.fz = null;
+      this.t = null;
     }
     else {
       if (initObj.hasOwnProperty('mx')) {
@@ -41,6 +42,12 @@ class EuropaMsg {
       else {
         this.fz = 0.0;
       }
+      if (initObj.hasOwnProperty('t')) {
+        this.t = initObj.t
+      }
+      else {
+        this.t = 0.0;
+      }
     }
   }
 
@@ -52,6 +59,8 @@ class EuropaMsg {
     bufferOffset = _serializer.float64(obj.my, buffer, bufferOffset);
     // Serialize message field [fz]
     bufferOffset = _serializer.float64(obj.fz, buffer, bufferOffset);
+    // Serialize message field [t]
+    bufferOffset = _serializer.float64(obj.t, buffer, bufferOffset);
     return bufferOffset;
   }
 
@@ -65,11 +74,13 @@ class EuropaMsg {
     data.my = _deserializer.float64(buffer, bufferOffset);
     // Deserialize message field [fz]
     data.fz = _deserializer.float64(buffer, bufferOffset);
+    // Deserialize message field [t]
+    data.t = _deserializer.float64(buffer, bufferOffset);
     return data;
   }
 
   static getMessageSize(object) {
-    return 24;
+    return 32;
   }
 
   static datatype() {
@@ -79,7 +90,7 @@ class EuropaMsg {
 
   static md5sum() {
     //Returns md5sum for a message object
-    return '0595798c82dfd4a66519a6b930678e87';
+    return '5c9da1dd517ee166f38f63eacb3ba095';
   }
 
   static messageDefinition() {
@@ -88,6 +99,7 @@ class EuropaMsg {
     float64 mx
     float64 my
     float64 fz
+    float64 t
     
     `;
   }
@@ -117,6 +129,13 @@ class EuropaMsg {
     }
     else {
       resolved.fz = 0.0
+    }
+
+    if (msg.t !== undefined) {
+      resolved.t = msg.t;
+    }
+    else {
+      resolved.t = 0.0
     }
 
     return resolved;

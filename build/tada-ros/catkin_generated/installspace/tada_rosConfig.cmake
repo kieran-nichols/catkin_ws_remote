@@ -67,14 +67,14 @@ set(tada_ros_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(tada_ros_SOURCE_PREFIX C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/src/tada-ros)
-  set(tada_ros_DEVEL_PREFIX C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel)
+  set(tada_ros_SOURCE_PREFIX C:/Users/aheto/Documents/research/catkin_ws/catkin_ws_remote/src/tada-ros)
+  set(tada_ros_DEVEL_PREFIX C:/Users/aheto/Documents/research/catkin_ws/catkin_ws_remote/devel)
   set(tada_ros_INSTALL_PREFIX "")
   set(tada_ros_PREFIX ${tada_ros_DEVEL_PREFIX})
 else()
   set(tada_ros_SOURCE_PREFIX "")
   set(tada_ros_DEVEL_PREFIX "")
-  set(tada_ros_INSTALL_PREFIX C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/install)
+  set(tada_ros_INSTALL_PREFIX C:/Users/aheto/Documents/research/catkin_ws/catkin_ws_remote/install)
   set(tada_ros_PREFIX ${tada_ros_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/install/lib;C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel/lib;c:/opt/ros/noetic/x64/lib)
+    foreach(path C:/Users/aheto/Documents/research/catkin_ws/catkin_ws_remote/install/lib;C:/Users/aheto/Documents/research/catkin_ws/catkin_ws_remote/devel/lib;c:/opt/ros/noetic/x64/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

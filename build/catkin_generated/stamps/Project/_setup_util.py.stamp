@@ -268,7 +268,7 @@ if __name__ == '__main__':
 
         if not args.local:
             # environment at generation time
-            CMAKE_PREFIX_PATH = r'C:\opt\ros\noetic\x64\tools\vcpkg\installed\x64-windows;C:/Users/the1k/source/repos/PythonApplication1/catkin_ws/devel;c:\opt\ros\noetic\x64'.split(';')
+            CMAKE_PREFIX_PATH = r'C:\opt\ros\noetic\x64\tools\vcpkg\installed\x64-windows;C:/Users/aheto/Documents/research/catkin_ws/catkin_ws_remote/devel;c:\opt\ros\noetic\x64'.split(';')
         else:
             # don't consider any other prefix path than this one
             CMAKE_PREFIX_PATH = []
