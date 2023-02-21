@@ -202,7 +202,7 @@ if __name__ == '__main__':
     # Give a separate process to the ROS publishers
     #p2 = Process(target=init_publisher, args=(record,angle,notes,))
     #p2.start()#; p1.join()
-    init_publisher()
+    #init_publisher()
 
     # Run the Dash app using app.run
     app.run(debug=True, host='0.0.0.0') # seemed to be same speed and settings as above # setting debug to false does not seem to speed up the program  
