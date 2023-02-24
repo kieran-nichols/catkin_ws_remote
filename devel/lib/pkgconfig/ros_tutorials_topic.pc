@@ -1,8 +1,0 @@
-prefix=C:/Users/aheto/Documents/research/catkin_ws/catkin_ws_remote/devel
-
-Name: ros_tutorials_topic
-Description: Description of ros_tutorials_topic
-Version: 0.1.0
-Cflags: -IC:/Users/aheto/Documents/research/catkin_ws/catkin_ws_remote/devel/include
-Libs: -L${prefix}/lib -lros_tutorials_topic
-Requires: std_msgs roscpp

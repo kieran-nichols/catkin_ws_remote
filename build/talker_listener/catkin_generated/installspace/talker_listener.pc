@@ -1,8 +1,0 @@
-prefix=C:/Users/aheto/Documents/research/catkin_ws/catkin_ws_remote/install
-
-Name: talker_listener
-Description: Description of talker_listener
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
