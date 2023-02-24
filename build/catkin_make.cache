@@ -1,2 +1,0 @@
-streaming_protocol;tada-ros;talker_listener
--DCMAKE_BUILD_TYPE=RelWithDebInfo -DCATKIN_DEVEL_PREFIX=C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\devel -DCMAKE_INSTALL_PREFIX=C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\install -G Ninja
