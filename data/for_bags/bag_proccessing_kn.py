@@ -12,7 +12,7 @@ from plotly.subplots import make_subplots
 import types
 
 # find all files with '.bag' in name
-path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\for_bags"
+path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\for_bags"
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
 #print(files, "\nlist_length= ", len(files))
 all_real_time = []
@@ -26,7 +26,7 @@ figure = go.Figure()
 figure1 = go.Figure()
 figure2 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 figure3 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
-figure_polar = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2], horizontal_spacing=0.075,)# subplot_titles=("Plantarflexor Moment", "Eversion Moment", "Resultant Moment")) 
+figure_polar = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2],  subplot_titles=("Plantarflexor Moment", "Eversion Moment")) 
 
 color_dict = dict(zip(['slow', 'med', 'fast'], colors))
 moments = {'mx':[], 'my':[]}
@@ -137,8 +137,8 @@ for i, file in enumerate(files):
         #figure2.add_trace(trace,j+1,1)
         
         #break
-    figure.show()
-    break
+    #figure.show()
+    #break
     #time.sleep(2)
     peak_avg_result_array.append(np.linalg.norm(peak_avg_result))
     #peak_avg_front[i] = np.mean(peak_avg_array_front)
@@ -199,25 +199,26 @@ for i in range(3):
     figure_polar.add_trace(go.Scatterpolar(r=polar_moments_front, theta= direction, mode='markers+lines', name=speed, marker=dict(color=new_color), legendgroup=legendgroup,  line_width=6, marker_line_width=6),1,2) # 'frontal moment', showlegend=show_legend
     #figure_polar.add_trace(go.Scatterpolar(r=polar_moments_result, theta= direction, mode='markers+lines', name=speed, marker=dict(color=new_color),legendgroup=legendgroup),1,3) # name='resultant moment'
     
-figure2.update_layout(title_text="Average Moment Peaks for a given speedt")
+figure2.update_layout(title_text="Average Moment Peaks for a given speed and TADA angle", template='plotly')
 figure2.update_layout(xaxis1_title="TADA angle (anatomical angle)", yaxis_title="Frontal Moment (N*m)")
 figure2.update_layout(xaxis2_title="TADA angle (anatomical angle)", yaxis2_title="Sagittal Moment (N*m)")
 #figure2.update_layout(xaxis3_title="TADA angle (anatomical angle)", yaxis3_title="Resultant Moment (N*m)")
 figure2.update_layout(legend_title="Speed (m/s)")
 
-figure_polar.update_layout(title_text="Polar plots of Average Peak Pylon Moments for various TADA angles and walking speeds", font_size=25, template='plotly',)
+figure_polar.update_layout(title_text="Polar plots of Average Peak Pylon Moments for various TADA angles and walking speeds", template='plotly')
 figure_polar.update_layout(polar=dict(angularaxis=dict(rotation=-45, gridwidth = 10), radialaxis=dict(tickvals=[500, 1000, 1500, 2000], gridwidth = 10)), 
                            polar2=dict(angularaxis=dict(rotation=-45, gridwidth = 10), radialaxis=dict(tickvals=[250, 500, 750], gridwidth = 10)))
-figure_polar.update_layout(legend=dict(title="Speed (m/s)", orientation="h",  font=dict(size=40)))#, yanchor="bottom", y=0, xanchor="left", x=0.99))
-figure_polar.add_annotation(xref="paper", yref="paper", x=0.155, y=0.51, text="<b>Sagittal<br>Moments</b>", showarrow=False,  font=dict(size=32))
-figure_polar.add_annotation(xref="paper", yref="paper", x=0.82, y=0.51, text="<b>Frontal<br>Moments</b>", showarrow=False,  font=dict(size=32))
+figure_polar.update_layout(legend=dict(title="Speed (m/s)", orientation="h",))
+#figure_polar.update_layout(legend=dict(title="Speed (m/s)", orientation="h",  font=dict(size=40)))#, yanchor="bottom", y=0, xanchor="left", x=0.99))
+#figure_polar.add_annotation(xref="paper", yref="paper", x=0.155, y=0.51, text="<b>Sagittal<br>Moments</b>", showarrow=False,  font=dict(size=32))
+#figure_polar.add_annotation(xref="paper", yref="paper", x=0.82, y=0.51, text="<b>Frontal<br>Moments</b>", showarrow=False,  font=dict(size=32))
 #figure.update_layout(legend=dict(x='slow', y='medium',z='fast'))
 #figure.show()
 #figure2.show()
 #figure3.show()
 #figure_polar.show()
 
-bag_folder_path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\for_bags\data_kn"
+bag_folder_path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\for_bags\data_kn"
 figure2.write_html(f'{bag_folder_path}/file_line.html')
 figure_polar.write_html(f'{bag_folder_path}/file_polar.html')
 

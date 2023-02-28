@@ -13,7 +13,7 @@ import types
 
 # find all files with '.bag' in name
 #path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\for_bags"
-path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\for_bags_2"
+path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\for_bags_2"
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
 #print(files, "\nlist_length= ", len(files))
 
