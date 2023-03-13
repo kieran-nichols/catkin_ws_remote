@@ -35,9 +35,9 @@
 
   Information about the segment of mass is sent as follows.
 
-  4 bytes x–coordinate of position
-  4 bytes y–coordinate of position
-  4 bytes z–coordinate of position
+  4 bytes xï¿½coordinate of position
+  4 bytes yï¿½coordinate of position
+  4 bytes zï¿½coordinate of position
 
   Total: 12 bytes
 
@@ -89,16 +89,16 @@ void CenterOfMassDatagram::printData() const
 	xsens_com.data.clear();
 	std::vector<float> vec;
 	/////////////////////////time
-	time_t now;
-	//std::string currentTime;
+	// Get the current time
+	ros::Time::init();
+	ros::Time now = ros::Time::now();
 
-	now = std::time(0);
-	//urrentTime = std::time(&now);
-	time_t mnow = now;
+	int lowtime =  now.nsec/1000000;
+	int hightime =  now.sec%100000;
 
-	float final_time = mnow % 1000000;
-	//std::cout.precision(20);
-	//std::cout << (final_time) << std::endl;
+	float lower_final_time =  (float) lowtime;
+	float high_final_time =  (float) hightime;
+	float final_time = floorf(lower_final_time)/1000+high_final_time;
 
 	///////////////////////////////////
 	vec.insert(vec.end(), { final_time });

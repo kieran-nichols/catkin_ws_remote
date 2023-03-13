@@ -37,15 +37,15 @@
 	Information about each segment is sent as follows.
 
 	4 bytes segment ID, in the range 1-30
-	4 bytes x–coordinate of segment position
-	4 bytes y–coordinate of segment position
-	4 bytes z–coordinate of segment position
-	4 bytes x–coordinate of segment velocity
-	4 bytes y–coordinate of segment velocity
-	4 bytes z–coordinate of segment velocity
-	4 bytes x–coordinate of segment acceleration
-	4 bytes y–coordinate of segment acceleration
-	4 bytes z–coordinate of segment acceleration
+	4 bytes xï¿½coordinate of segment position
+	4 bytes yï¿½coordinate of segment position
+	4 bytes zï¿½coordinate of segment position
+	4 bytes xï¿½coordinate of segment velocity
+	4 bytes yï¿½coordinate of segment velocity
+	4 bytes zï¿½coordinate of segment velocity
+	4 bytes xï¿½coordinate of segment acceleration
+	4 bytes yï¿½coordinate of segment acceleration
+	4 bytes zï¿½coordinate of segment acceleration
 
 	Total: 40 bytes per segment
 
@@ -106,16 +106,15 @@ void LinearSegmentKinematicsDatagram::printData() const
 	std::vector<float> vec;
 	//ros::Rate rate(100); // ROS Rate at 5Hz
 	/////////////////////////time
-	time_t now;
-	//std::string currentTime;
+	// Get the current time
+	ros::Time::init();
+	ros::Time now = ros::Time::now();
 
-	now = std::time(0);
-	//urrentTime = std::time(&now);
-	time_t mnow = now;
-
-	float final_time = mnow % 1000000;
-	//std::cout.precision(20);
-	//std::cout << (final_time) << std::endl;
+	int lowtime =  now.nsec/1000000;
+	int hightime =  now.sec%100000;
+	float lower_final_time =  (float) lowtime;
+	float high_final_time =  (float) hightime;
+	float final_time = floorf(lower_final_time)/1000+high_final_time;
 
 	///////////////////////////////////
 

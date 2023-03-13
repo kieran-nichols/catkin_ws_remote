@@ -26,7 +26,6 @@
 
 #include "angularsegmentkinematicsdatagram.h"
 #include <xstypes/xsmath.h>
-
 #include "udpserver.h"
 #include "streamer.h"
 #include <conio.h>
@@ -118,17 +117,18 @@ void AngularSegmentKinematicsDatagram::printData() const
 	//ros::Rate rate(100);
 
 	std::vector<float> vec;
+
 	/////////////////////////time
-	time_t now;
-	//std::string currentTime;
+	// Get the current time
+	ros::Time::init();
+	ros::Time now = ros::Time::now();
 
-	now = std::time(0);
-	//urrentTime = std::time(&now);
-	time_t mnow = now;
+	int lowtime =  now.nsec/1000000;
+	int hightime =  now.sec%100000;
 
-	float final_time = mnow % 1000000;
-	//std::cout.precision(20);
-	//std::cout << (final_time) << std::endl;
+	float lower_final_time =  (float) lowtime;
+	float high_final_time =  (float) hightime;
+	float final_time = floorf(lower_final_time)/1000+high_final_time;
 
 	///////////////////////////////////
 
@@ -147,27 +147,7 @@ void AngularSegmentKinematicsDatagram::printData() const
 		vec.insert(vec.end(), { who, m_data.at(i).angularVeloc[0], m_data.at(i).angularVeloc[1],m_data.at(i).angularVeloc[2],
 			m_data.at(i).angularAccel[0],m_data.at(i).angularAccel[1], m_data.at(i).angularAccel[2]});
 
-		/*
-		std::cout << "Segment ID: " << m_data.at(i).segmentId << std::endl;
-		// Segment orientation quaternion
-		std::cout << "Segment orientation: " << "(";
-		std::cout << "re: " << m_data.at(i).segmentOrien[0] << ", ";
-		std::cout << "i: " << m_data.at(i).segmentOrien[1] << ", ";
-		std::cout << "j: " << m_data.at(i).segmentOrien[1] << ", ";
-		std::cout << "k: " << m_data.at(i).segmentOrien[2] << ")"<< std::endl;
-
-		// Angular Velocity
-		std::cout << "Angular velocity: " << "(";
-		std::cout << "x: " << m_data.at(i).angularVeloc[0] << ", ";
-		std::cout << "y: " << m_data.at(i).angularVeloc[1] << ", ";
-		std::cout << "z: " << m_data.at(i).angularVeloc[2] << ")"<< std::endl;
-
-		// Angular acceleration
-		std::cout << "Angular acceleration: " << "(";
-		std::cout << "x: " << m_data.at(i).angularAccel[0] << ", ";
-		std::cout << "y: " << m_data.at(i).angularAccel[1] << ", ";
-		std::cout << "z: " << m_data.at(i).angularAccel[2] << ")"<< std::endl << std::endl;
-		*/
+		
 	}
 	angular_moments.data = (vec);
 	pub_angular_moments.publish(angular_moments);
