@@ -132,29 +132,9 @@ void LinearSegmentKinematicsDatagram::printData() const
 		float who = m_data.at(i).segmentId;
 
 		vec.insert(vec.end(), { who, m_data.at(i).acceleration[0], m_data.at(i).acceleration[1],m_data.at(i).acceleration[2] });
-		/*
-		std::cout << "Segment ID: " << m_data.at(i).segmentId << std::endl;
-		// Segment Position
-		std::cout << "Segment Position: " << "(";
-		std::cout << "x: " << m_data.at(i).pos[0] << ", ";
-		std::cout << "y: " << m_data.at(i).pos[1] << ", ";
-		std::cout << "z: " << m_data.at(i).pos[2] << ")"<< std::endl;
-
-		// Segment Velocity
-		std::cout << "Segment Velocity: " << "(";
-		std::cout << "x: " << m_data.at(i).velocity[0] << ", ";
-		std::cout << "y: " << m_data.at(i).velocity[1] << ", ";
-		std::cout << "z: " << m_data.at(i).velocity[2] << ")"<< std::endl;
-
-		// Segment Acceleration
-		std::cout << "Segment Acceleration: " << "(";
-		std::cout << "x: " << m_data.at(i).acceleration[0] << ", ";
-		std::cout << "y: " << m_data.at(i).acceleration[1] << ", ";
-		std::cout << "z: " << m_data.at(i).acceleration[2] << ")"<< std::endl << std::endl;
-		*/
+	
 	}
 	linear_moments.data = (vec);
 	pub_linear_moments.publish(linear_moments);
 	ros::spinOnce();
-	//rate.sleep();
 }

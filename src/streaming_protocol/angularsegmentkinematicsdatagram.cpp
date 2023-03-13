@@ -152,6 +152,5 @@ void AngularSegmentKinematicsDatagram::printData() const
 	angular_moments.data = (vec);
 	pub_angular_moments.publish(angular_moments);
 	ros::spinOnce();
-	//rate.sleep();
 	
 }

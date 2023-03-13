@@ -82,8 +82,6 @@ void CenterOfMassDatagram::printData() const
 {
 	ros::NodeHandle s;
 	ros::Publisher pub_xsens_com= s.advertise<std_msgs::Float32MultiArray>("xsens_com", 10);
-	//ros::Rate rate(100);
-
 	std_msgs::Float32MultiArray xsens_com;
 	//Clear array
 	xsens_com.data.clear();
@@ -106,21 +104,6 @@ void CenterOfMassDatagram::printData() const
 	vec.insert(vec.end(), { m_pos[0], m_pos[1], m_pos[2], 
 		m_vel[0], m_vel[1], m_vel[2],
 		m_acc[0], m_acc[1], m_acc[2] });
-	
-	//std::cout << "Center of Mass Position: " << "(";
-	//std::cout << "x: " << m_pos[0] << ", ";
-	//std::cout << "y: " << m_pos[1] << ", ";
-	//std::cout << "z: " << m_pos[2] << ")" << std::endl; // << std::endl;
-
-	//std::cout << "Center of Mass Velocity: " << "(";
-	//std::cout << "x: " << m_vel[0] << ", ";
-	//std::cout << "y: " << m_vel[1] << ", ";
-	//std::cout << "z: " << m_vel[2] << ")" << std::endl; // << std::endl;
-
-	//std::cout << "Center of Mass Acceleration: " << "(";
-	//std::cout << "x: " << m_acc[0] << ", ";
-	//std::cout << "y: " << m_acc[1] << ", ";
-	//std::cout << "z: " << m_acc[2] << ")" << std::endl; // << std::endl;
 	
 	xsens_com.data = (vec);
 	pub_xsens_com.publish(xsens_com);
