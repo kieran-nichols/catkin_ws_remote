@@ -38,15 +38,21 @@ int main(int argc, char *argv[])
 	ros::NodeHandle s;
 	ros::Publisher pub_xsens_com = s.advertise<std_msgs::Float32MultiArray>("xsens_com", 10);
 	ros::Publisher pub_xsens_joint_angle = s.advertise<std_msgs::Float32MultiArray>("xsens_joint_angle", 10);
+	ros::Publisher pub_xsens_angular_moments = s.advertise<std_msgs::Float32MultiArray>("angular_moments", 10);
+	ros::Publisher pub_xsens_linear_moments = s.advertise<std_msgs::Float32MultiArray>("linear_moments", 10);
+
 	//ros::spinOnce();
 
 	std::string hostDestinationAddress = "localhost";
-	int port = 9763;
+	int port = 8000;
 
 	UdpServer udpServer(hostDestinationAddress, (uint16_t)port);
-
-	while (!_kbhit())
-		XsTime::msleep(10);
+	//ros::Rate rate(100); // ROS Rate at 5Hz
+	while (!_kbhit()) {
+		//XsTime::msleep(10);
+		//rate.sleep();
+		continue;
+	}
 
 	return 0;
 }

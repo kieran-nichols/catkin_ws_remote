@@ -31,6 +31,10 @@
 #include <iostream>
 #include <vector>
 #include "std_msgs/Float32MultiArray.h"
+#include <chrono>
+#include <cstdint>
+#include <iostream>
+
 
 /*! \class JointAnglesDatagram
 	\brief a Joint Angle datagram (type 0x20)
@@ -91,8 +95,10 @@ void JointAnglesDatagram::deserializeData(Streamer &inputStreamer)
 		
 }
 
+
 /*! Print Data datagram in a formatted way
 */
+using namespace std::chrono;
 void JointAnglesDatagram::printData() const
 {
 	ros::NodeHandle s;
@@ -102,9 +108,23 @@ void JointAnglesDatagram::printData() const
 	//Clear array
 	xsens_joint_angle.data.clear();
 	std::vector<float> vec;
+	// Get the current time
+	ros::Time::init();
+	ros::Time now = ros::Time::now();
 
-	for (int i = 0; i < m_data.size(); i++)
-	//for (int i = 14; i < 21; i++)
+	int lowtime =  now.nsec/1000000;
+	int hightime =  now.sec%100000;
+	float lower_final_time =  (float) lowtime;
+	float high_final_time =  (float) hightime;
+	float final_time = floorf(lower_final_time)/1000+high_final_time;
+
+	///////////////////////////////////
+	
+	vec.insert(vec.end(), { final_time });
+
+	//ros::Rate rate(100); // ROS Rate at 5Hz
+	//for (int i = 0; i < m_data.size(); i++)
+	for (int i = 14; i < 24; i++)
 	{
 		//std::cout << "Parent Connection ID (256 * segment ID + point ID): " << m_data.at(i).parent << std::endl;
 		//std::cout << "Child Connection ID (256 * segment ID + point ID): " << m_data.at(i).child << std::endl;
@@ -117,10 +137,18 @@ void JointAnglesDatagram::printData() const
 		
 		// add the x,y,z rotation of one joint to the end of the xsens_joint_angle array
 		// needed to convert each rotation into float using static_cast<float>()
-		vec.insert(vec.end(), { (m_data.at(i).rotation[0]), (m_data.at(i).rotation[1]), (m_data.at(i).rotation[2]) });
+		float parent = m_data.at(i).parent;
+		float child = m_data.at(i).child;
+		vec.insert(vec.end(), {parent,child, (m_data.at(i).rotation[0]), (m_data.at(i).rotation[1]), (m_data.at(i).rotation[2]) });
 	}
 	// publish xsens_joint_angle array which will contain about 63 items
+	
+	
+	//adding time
+	
+
 	xsens_joint_angle.data = (vec);
 	pub_xsens_joint_angle.publish(xsens_joint_angle);
 	ros::spinOnce();
+	//rate.sleep();
 }

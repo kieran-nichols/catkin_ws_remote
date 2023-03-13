@@ -35,9 +35,9 @@
 
   Information about the segment of mass is sent as follows.
 
-  4 bytes x–coordinate of position
-  4 bytes y–coordinate of position
-  4 bytes z–coordinate of position
+  4 bytes xï¿½coordinate of position
+  4 bytes yï¿½coordinate of position
+  4 bytes zï¿½coordinate of position
 
   Total: 12 bytes
 
@@ -82,11 +82,27 @@ void CenterOfMassDatagram::printData() const
 {
 	ros::NodeHandle s;
 	ros::Publisher pub_xsens_com= s.advertise<std_msgs::Float32MultiArray>("xsens_com", 10);
+	//ros::Rate rate(100);
 
 	std_msgs::Float32MultiArray xsens_com;
 	//Clear array
 	xsens_com.data.clear();
 	std::vector<float> vec;
+	/////////////////////////time
+	// Get the current time
+	ros::Time::init();
+	ros::Time now = ros::Time::now();
+
+	int lowtime =  now.nsec/1000000;
+	int hightime =  now.sec%100000;
+
+	float lower_final_time =  (float) lowtime;
+	float high_final_time =  (float) hightime;
+	float final_time = floorf(lower_final_time)/1000+high_final_time;
+
+	///////////////////////////////////
+	vec.insert(vec.end(), { final_time });
+
 	vec.insert(vec.end(), { m_pos[0], m_pos[1], m_pos[2], 
 		m_vel[0], m_vel[1], m_vel[2],
 		m_acc[0], m_acc[1], m_acc[2] });
@@ -108,5 +124,6 @@ void CenterOfMassDatagram::printData() const
 	
 	xsens_com.data = (vec);
 	pub_xsens_com.publish(xsens_com);
+	//rate.sleep();
 	ros::spinOnce();
 }

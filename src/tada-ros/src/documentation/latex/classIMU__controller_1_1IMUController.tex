@@ -1,0 +1,117 @@
+\hypertarget{classIMU__controller_1_1IMUController}{}\doxysection{I\+M\+U\+Controller Class Reference}
+\label{classIMU__controller_1_1IMUController}\index{IMUController@{IMUController}}
+
+
+class deidcated to I\+MU data collection and processing  
+
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_ae64f0875afe3067b97ba370b354b9213}\label{classIMU__controller_1_1IMUController_ae64f0875afe3067b97ba370b354b9213}} 
+def \mbox{\hyperlink{classIMU__controller_1_1IMUController_ae64f0875afe3067b97ba370b354b9213}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self)
+\begin{DoxyCompactList}\small\item\em initialization of I\+MU \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_ac97362a11c749ba964cb842493ade0d6}\label{classIMU__controller_1_1IMUController_ac97362a11c749ba964cb842493ade0d6}} 
+def {\bfseries eulerian\+To\+Quaternion} (self, e)
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a452312f32016bafa7da2d2cd72a91108}\label{classIMU__controller_1_1IMUController_a452312f32016bafa7da2d2cd72a91108}} 
+def \mbox{\hyperlink{classIMU__controller_1_1IMUController_a452312f32016bafa7da2d2cd72a91108}{get\+\_\+bias}} (self)
+\begin{DoxyCompactList}\small\item\em collect raw values of I\+MU for bias correction \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a207174b39d7351aab4212b14b29641cd}\label{classIMU__controller_1_1IMUController_a207174b39d7351aab4212b14b29641cd}} 
+def \mbox{\hyperlink{classIMU__controller_1_1IMUController_a207174b39d7351aab4212b14b29641cd}{get\+\_\+data}} (self, bias)
+\begin{DoxyCompactList}\small\item\em collect continuous steam of I\+MU accel and gyro data and output de-\/biased data \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_ab386522d3ba454c2891a44a30d185fb7}\label{classIMU__controller_1_1IMUController_ab386522d3ba454c2891a44a30d185fb7}} 
+def \mbox{\hyperlink{classIMU__controller_1_1IMUController_ab386522d3ba454c2891a44a30d185fb7}{imu\+\_\+reconstruction}} (self, imu\+\_\+data, bias)
+\begin{DoxyCompactList}\small\item\em reconstruct real world accel, vel, position \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a3ec0b8f09c4aeb9036c859624050a1b5}\label{classIMU__controller_1_1IMUController_a3ec0b8f09c4aeb9036c859624050a1b5}} 
+def {\bfseries init\+Quaternion} (self, imu\+\_\+data)
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a27f96e0a374521b2483420ca12d65234}\label{classIMU__controller_1_1IMUController_a27f96e0a374521b2483420ca12d65234}} 
+def {\bfseries quaternion\+To\+Eulerian} (self)
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a5f1fde29a6d85f2c24c6541a78c0e7ad}\label{classIMU__controller_1_1IMUController_a5f1fde29a6d85f2c24c6541a78c0e7ad}} 
+def {\bfseries quaternion\+To\+Rotation\+Matrix} (self)
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_aa808ed08c383d50c006d5ab0286b84a7}\label{classIMU__controller_1_1IMUController_aa808ed08c383d50c006d5ab0286b84a7}} 
+def \mbox{\hyperlink{classIMU__controller_1_1IMUController_aa808ed08c383d50c006d5ab0286b84a7}{read\+\_\+raw\+\_\+data}} (self, addr)
+\begin{DoxyCompactList}\small\item\em read raw bytes from I\+MU \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_af14448a24bf394b821e1d3d1b0efda3c}\label{classIMU__controller_1_1IMUController_af14448a24bf394b821e1d3d1b0efda3c}} 
+def {\bfseries update\+Quaternion\+Kalman} (self, imu\+\_\+data)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_aa40aa9746d55b72357add7342feb3d80}\label{classIMU__controller_1_1IMUController_aa40aa9746d55b72357add7342feb3d80}} 
+{\bfseries is\+\_\+first\+\_\+integration}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_ae6335acdf460dfdbea2c763f2e29243e}\label{classIMU__controller_1_1IMUController_ae6335acdf460dfdbea2c763f2e29243e}} 
+{\bfseries is\+\_\+low\+\_\+motion}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_abf9662cdd8563933099f210c5b05446e}\label{classIMU__controller_1_1IMUController_abf9662cdd8563933099f210c5b05446e}} 
+{\bfseries kalman}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_ae4683d277224a5875fe5d0e9c7e349c0}\label{classIMU__controller_1_1IMUController_ae4683d277224a5875fe5d0e9c7e349c0}} 
+{\bfseries low\+\_\+motion\+\_\+seconds}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_ac520316b43972550fb41f937042d4ad3}\label{classIMU__controller_1_1IMUController_ac520316b43972550fb41f937042d4ad3}} 
+{\bfseries nonlow\+\_\+motion\+\_\+seconds}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_adf54215d760dbf0f9fe5627a39015333}\label{classIMU__controller_1_1IMUController_adf54215d760dbf0f9fe5627a39015333}} 
+{\bfseries pos}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_aaa6b321ad3c69089c69b185a87b3cac9}\label{classIMU__controller_1_1IMUController_aaa6b321ad3c69089c69b185a87b3cac9}} 
+{\bfseries prev\+\_\+pos}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a2f181fcb0130fe910f83803212f4d33b}\label{classIMU__controller_1_1IMUController_a2f181fcb0130fe910f83803212f4d33b}} 
+{\bfseries prev\+\_\+swing\+\_\+time}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a5f469312b3865f2d3efea2edd6f8afaa}\label{classIMU__controller_1_1IMUController_a5f469312b3865f2d3efea2edd6f8afaa}} 
+{\bfseries quaternion}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a1f298e56635ebe680069cb83c8441b37}\label{classIMU__controller_1_1IMUController_a1f298e56635ebe680069cb83c8441b37}} 
+{\bfseries stance\+\_\+time}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_af0e040a23299a7d2c0c439bd896920e8}\label{classIMU__controller_1_1IMUController_af0e040a23299a7d2c0c439bd896920e8}} 
+{\bfseries stride\+\_\+speed\+\_\+estimated}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a02052d2deef45c9629cc273e5048387a}\label{classIMU__controller_1_1IMUController_a02052d2deef45c9629cc273e5048387a}} 
+{\bfseries stride\+\_\+time}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a0c3648b59c3acd442127a0117b80363f}\label{classIMU__controller_1_1IMUController_a0c3648b59c3acd442127a0117b80363f}} 
+{\bfseries swing\+\_\+time}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_aa69ee4d0ac87385b7d07d0b97d900ff4}\label{classIMU__controller_1_1IMUController_aa69ee4d0ac87385b7d07d0b97d900ff4}} 
+{\bfseries vel}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a411c26f2b90fcd356c31f74bd6d99faa}\label{classIMU__controller_1_1IMUController_a411c26f2b90fcd356c31f74bd6d99faa}} 
+{\bfseries walk\+\_\+status}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a3b1e901ac8016e6474da730b78a6e130}\label{classIMU__controller_1_1IMUController_a3b1e901ac8016e6474da730b78a6e130}} 
+{\bfseries walking\+\_\+speed}
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a411bd59fecc82fdfda0e5c9d7da7447f}\label{classIMU__controller_1_1IMUController_a411bd59fecc82fdfda0e5c9d7da7447f}} 
+{\bfseries bus} = smbus.\+S\+M\+Bus(1)
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_afe18daf2e03938555667845cd9354c08}\label{classIMU__controller_1_1IMUController_afe18daf2e03938555667845cd9354c08}} 
+{\bfseries cur\+\_\+time} = time.\+time()
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a8aa55c8aa2346c2358ce68869a197088}\label{classIMU__controller_1_1IMUController_a8aa55c8aa2346c2358ce68869a197088}} 
+{\bfseries file\+\_\+path} = os.\+path.\+join(os.\+path.\+dirname(\+\_\+\+\_\+file\+\_\+\+\_\+), \char`\"{}../\char`\"{}, rel\+\_\+path)
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a5bfcbf6494c282c50d5ab0c1f1760571}\label{classIMU__controller_1_1IMUController_a5bfcbf6494c282c50d5ab0c1f1760571}} 
+{\bfseries measured\+\_\+dt} = constants.\+DT
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a98ab757864363748acdf858fe4053ae4}\label{classIMU__controller_1_1IMUController_a98ab757864363748acdf858fe4053ae4}} 
+{\bfseries reconstruction\+\_\+file} = open(file\+\_\+path,\char`\"{}w+\char`\"{})
+\item 
+\mbox{\Hypertarget{classIMU__controller_1_1IMUController_a05e3a3764d4392bf93be71adf8b2b9e9}\label{classIMU__controller_1_1IMUController_a05e3a3764d4392bf93be71adf8b2b9e9}} 
+string {\bfseries rel\+\_\+path} = \char`\"{}reconstruction\+\_\+files/reconstruction\+\_\+file\+\_\+\%s.\+txt\char`\"{} \% \textbackslash{}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/mnt/c/\+Users/the1k/\+Documents/\+Git/tada-\/ros/src/tada\+\_\+ros/sensors/I\+M\+U\+\_\+controller.\+py\end{DoxyCompactItemize}

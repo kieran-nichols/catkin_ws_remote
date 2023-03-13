@@ -25,22 +25,27 @@
 */
 
 #include "linearsegmentkinematicsdatagram.h"
-
+#include "udpserver.h"
+#include "streamer.h"
+#include <conio.h>
+#include <xstypes/xstime.h>
+#include "ros/ros.h"
+#include "std_msgs/Float32MultiArray.h"
 /*! \class LinearSegmentKinematicsDatagram
 	\brief a Linear Segment Kinematics datagram (type 0x21)
 
 	Information about each segment is sent as follows.
 
 	4 bytes segment ID, in the range 1-30
-	4 bytes x–coordinate of segment position
-	4 bytes y–coordinate of segment position
-	4 bytes z–coordinate of segment position
-	4 bytes x–coordinate of segment velocity
-	4 bytes y–coordinate of segment velocity
-	4 bytes z–coordinate of segment velocity
-	4 bytes x–coordinate of segment acceleration
-	4 bytes y–coordinate of segment acceleration
-	4 bytes z–coordinate of segment acceleration
+	4 bytes xï¿½coordinate of segment position
+	4 bytes yï¿½coordinate of segment position
+	4 bytes zï¿½coordinate of segment position
+	4 bytes xï¿½coordinate of segment velocity
+	4 bytes yï¿½coordinate of segment velocity
+	4 bytes zï¿½coordinate of segment velocity
+	4 bytes xï¿½coordinate of segment acceleration
+	4 bytes yï¿½coordinate of segment acceleration
+	4 bytes zï¿½coordinate of segment acceleration
 
 	Total: 40 bytes per segment
 
@@ -93,8 +98,41 @@ void LinearSegmentKinematicsDatagram::deserializeData(Streamer &inputStreamer)
 */
 void LinearSegmentKinematicsDatagram::printData() const
 {
-	for (int i = 0; i < m_data.size(); i++)
+	ros::NodeHandle s;
+	ros::Publisher pub_linear_moments = s.advertise<std_msgs::Float32MultiArray>("linear_moments", 10);
+	std_msgs::Float32MultiArray linear_moments;
+	//Clear array
+	linear_moments.data.clear();
+	std::vector<float> vec;
+	//ros::Rate rate(100); // ROS Rate at 5Hz
+	/////////////////////////time
+	// Get the current time
+	ros::Time::init();
+	ros::Time now = ros::Time::now();
+
+	int lowtime =  now.nsec/1000000;
+	int hightime =  now.sec%100000;
+	float lower_final_time =  (float) lowtime;
+	float high_final_time =  (float) hightime;
+	float final_time = floorf(lower_final_time)/1000+high_final_time;
+
+	///////////////////////////////////
+
+	vec.insert(vec.end(), { final_time });
+
+	float who = m_data.at(0).segmentId;
+
+	vec.insert(vec.end(), { who, m_data.at(0).acceleration[0], m_data.at(0).acceleration[1],m_data.at(0).acceleration[2] });
+
+	for (int i = 15; i < 22; i++)
 	{
+		if (i == 18) {
+			continue;
+		}
+		float who = m_data.at(i).segmentId;
+
+		vec.insert(vec.end(), { who, m_data.at(i).acceleration[0], m_data.at(i).acceleration[1],m_data.at(i).acceleration[2] });
+		/*
 		std::cout << "Segment ID: " << m_data.at(i).segmentId << std::endl;
 		// Segment Position
 		std::cout << "Segment Position: " << "(";
@@ -113,5 +151,10 @@ void LinearSegmentKinematicsDatagram::printData() const
 		std::cout << "x: " << m_data.at(i).acceleration[0] << ", ";
 		std::cout << "y: " << m_data.at(i).acceleration[1] << ", ";
 		std::cout << "z: " << m_data.at(i).acceleration[2] << ")"<< std::endl << std::endl;
+		*/
 	}
+	linear_moments.data = (vec);
+	pub_linear_moments.publish(linear_moments);
+	ros::spinOnce();
+	//rate.sleep();
 }
