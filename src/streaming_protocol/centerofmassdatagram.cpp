@@ -85,28 +85,29 @@ void CenterOfMassDatagram::printData() const
 	std_msgs::Float32MultiArray xsens_com;
 	//Clear array
 	xsens_com.data.clear();
-	std::vector<float> vec;
+	std::vector<float> vec; //creating publishing vector
+
 	/////////////////////////time
 	// Get the current time
 	ros::Time::init();
 	ros::Time now = ros::Time::now();
 
-	int lowtime =  now.nsec/1000000;
-	int hightime =  now.sec%100000;
+	int lowtime =  now.nsec/1000000; //getting the ms of time
+	int hightime =  now.sec%100000;  //getting the seconds of time
 
-	float lower_final_time =  (float) lowtime;
+	float lower_final_time =  (float) lowtime; //turning them into a float
 	float high_final_time =  (float) hightime;
-	float final_time = floorf(lower_final_time)/1000+high_final_time;
+	float final_time = floorf(lower_final_time)/1000+high_final_time; //adding them up while trying to round it to just ms (which doesn't work)
 
 	///////////////////////////////////
-	vec.insert(vec.end(), { final_time });
 
+	vec.insert(vec.end(), { final_time });
+	//adding in certain sensor information
 	vec.insert(vec.end(), { m_pos[0], m_pos[1], m_pos[2], 
 		m_vel[0], m_vel[1], m_vel[2],
 		m_acc[0], m_acc[1], m_acc[2] });
 	
 	xsens_com.data = (vec);
 	pub_xsens_com.publish(xsens_com);
-	//rate.sleep();
 	ros::spinOnce();
 }

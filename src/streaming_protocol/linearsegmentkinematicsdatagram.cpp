@@ -103,18 +103,19 @@ void LinearSegmentKinematicsDatagram::printData() const
 	std_msgs::Float32MultiArray linear_moments;
 	//Clear array
 	linear_moments.data.clear();
-	std::vector<float> vec;
-	//ros::Rate rate(100); // ROS Rate at 5Hz
+	std::vector<float> vec;//creating a vector for publishing
+
 	/////////////////////////time
 	// Get the current time
 	ros::Time::init();
 	ros::Time now = ros::Time::now();
 
-	int lowtime =  now.nsec/1000000;
-	int hightime =  now.sec%100000;
-	float lower_final_time =  (float) lowtime;
+	int lowtime =  now.nsec/1000000; //getting the ms of time
+	int hightime =  now.sec%100000;  //getting the seconds of time
+
+	float lower_final_time =  (float) lowtime; //turning them into a float
 	float high_final_time =  (float) hightime;
-	float final_time = floorf(lower_final_time)/1000+high_final_time;
+	float final_time = floorf(lower_final_time)/1000+high_final_time; //adding them up while trying to round it to just ms (which doesn't work)
 
 	///////////////////////////////////
 
@@ -122,6 +123,7 @@ void LinearSegmentKinematicsDatagram::printData() const
 
 	float who = m_data.at(0).segmentId;
 
+	//adding only lower leg sensor's reading. Each number corresponds to a certain sensor which is why we have a 0 (pelv) and iterate through others)
 	vec.insert(vec.end(), { who, m_data.at(0).acceleration[0], m_data.at(0).acceleration[1],m_data.at(0).acceleration[2] });
 
 	for (int i = 15; i < 22; i++)

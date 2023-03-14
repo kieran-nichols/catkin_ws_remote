@@ -107,22 +107,25 @@ void JointAnglesDatagram::printData() const
 	std_msgs::Float32MultiArray xsens_joint_angle;
 	//Clear array
 	xsens_joint_angle.data.clear();
-	std::vector<float> vec;
+	std::vector<float> vec;//vector for publishing
 
 	/////////////////////////time
-	time_t now;
-	//std::string currentTime;
+	// Get the current time
+	ros::Time::init();
+	ros::Time now = ros::Time::now();
 
-	int lowtime =  now.nsec/1000000;
-	int hightime =  now.sec%100000;
-	float lower_final_time =  (float) lowtime;
+	int lowtime =  now.nsec/1000000; //getting the ms of time
+	int hightime =  now.sec%100000;  //getting the seconds of time
+
+	float lower_final_time =  (float) lowtime; //turning them into a float
 	float high_final_time =  (float) hightime;
-	float final_time = floorf(lower_final_time)/1000+high_final_time;
+	float final_time = floorf(lower_final_time)/1000+high_final_time; //adding them up while trying to round it to just ms (which doesn't work)
 
 	///////////////////////////////////
 	
 	vec.insert(vec.end(), { final_time });
-
+	
+	//adding only lower leg sensor's reading. Each number corresponds to a certain sensor which is why we iterate.
 	for (int i = 14; i < 24; i++)
 	{
 
