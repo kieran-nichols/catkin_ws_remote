@@ -176,7 +176,7 @@ elif step==1:
                     topic_individual_dict[metric_label] = [list_of_time, list_of_values]
                     #print(list_of_values)
                     
-                    # plot the topic for that region of time and group all metrics of the same topic
+                    # plot the topic for that region of time and group all metrics of the same topic, and plot x as time and y as metric                     
                     figure1.add_trace(go.Scatter(x=topic_individual_dict[metric_label][0],y=topic_individual_dict[metric_label][1], mode='lines', name=metric_label,legendgroup=legend_label))
                     #figure.show()
                     #break     
