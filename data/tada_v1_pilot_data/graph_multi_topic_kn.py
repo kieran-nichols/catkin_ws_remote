@@ -212,9 +212,13 @@ elif step==2:
     # OR Sofya, you can instead process the peak finder here (focus on pylon moment, ang vel of shank, CM forward vel, foot segment pos and vel, hip/knee/ankle angles)
     # Add the peaks of the chosen to topic_individual_peaks_dict
     
+    
     # Open pickle file for region data
     with open('region_data.pickle', 'rb') as handle:
         regions = pickle.load(handle)
+        
+        # Create dictionary for peak data   
+        topic_individual_peaks_dict = {}
         
     # Process region data
     
@@ -253,7 +257,7 @@ if step==1:
     figure.add_trace(go.Scatter(x=time5, y=linear_moments['foot_vert_vel'], mode='lines', name='foot_vert_vel'))
 
     figure.update_layout(title='All data', xaxis_title='Time (s)', yaxis_title='Value')
-    #figure.show() 
+    figure.show() 
 
 
 # Save the data to files
