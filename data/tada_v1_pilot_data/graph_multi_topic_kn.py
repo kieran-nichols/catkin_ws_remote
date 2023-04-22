@@ -137,9 +137,11 @@ elif step==1:
             # search each topic/metric for that region of time
             for j, metric_val in enumerate(all_metrics):
                 metric_time = all_time[j]
+                topic_individual_dict = {}
                 
                 # search for the index of the time that is closest to the time of the trial selector and add to list
                 #print(metric_val)
+
                 for key, (value1) in enumerate(metric_val.items()):
                     start_time = trial_item[2]
                     end_time = trial_item[5]

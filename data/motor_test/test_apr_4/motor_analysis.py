@@ -230,6 +230,9 @@ if step==0:
 
 else:
     
+    steady_info_time = []
+    steady_info_val = []
+    steady_info_displacement = []
     #chosen_topic_array = ['PF_cmd', 'EV_cmd', 'curr_PF', 'curr_EV']
     # Open pickle file for region data
     with open('region_motor_all.pickle', 'rb') as handle: # region_motor_all, region_angle_accurray
@@ -250,46 +253,78 @@ else:
             PF_command = metric_cmd[2] # 0 is PF for metric[0]
             time_list = [z for z in metric_cmd[1]]# need to split up panda
             name_ind = metric_cmd[0].find('PF =')
-            name = metric_cmd[0][name_ind:]
+            name = metric_cmd[0][name_ind:]   
             
             metric_actual = region[1]['curr_PF']
-            PF_actual = metric_actual[2] # 0 is PF for metric[0] 
-            
+            PF_actual = metric_actual[2] # 0 is PF for metric[0]             
             metric_motive = region[2]['rot_Z']
             PF_motive = metric_motive[2] # 0 is PF for metric[0]  
+            
+            metric_CPU0 = region[0]['CPU0']
+            metric_CPU1 = region[0]['CPU1']
+            metric_CPU2 = region[0]['CPU2']
+            metric_CPU3 = region[0]['CPU3']
+            CPU0 = metric_CPU0[2] 
+            CPU1 = metric_CPU1[2] 
+            CPU2 = metric_CPU2[2] 
+            CPU3 = metric_CPU3[2] 
+            
+            metric_toff = region[1]['t_off']
+            toff = metric_toff[2]            
             
             # use list comprehension to find the difference of each item of two lists: values_list[1] and values_list[0] and create a new list
             min_list_length = min(len(time_list), len(PF_command), len(PF_actual))
             #print(len(time_list), len(PF_command), len(PF_actual))
             diff = [PF_command[i] - PF_actual[i] for i in range(min_list_length)]
             diff_motive = [PF_command[i] - PF_motive[i] for i in range(min_list_length)]
-            
+
+            move_time = {'steady_time':[], 'steady_index':[], 'error':[]}
+            prev_val = 0
+            i = 0
+            # find movement time by searching for a change of value starting at the end of the diff arrays
+            offset = 10
+            for val, t in zip(diff[offset:], time_list[offset:]):
+                #approx_val = round(val, 2)
+                approx_val = val
+                difference = abs(approx_val - prev_val)
+                # find start time when approx val changes value and end time when it stops being equal to approx_val
+                if abs(approx_val) < 0.25 and difference < 0.25: # change in error in degrees
+                    steady_time = [t]
+                    steady_val = [val]
+                    dist_trav = [abs(diff[0])]
+                    steady_info_time.append(t)
+                    steady_info_val.append(abs(val)) 
+                    steady_info_displacement.append(dist_trav)
+                    break
+                prev_val = approx_val
+                #i+=1
+            #print(steady_time, steady_val)
             #print(diff)
             print(x, name)  
             # go to the next item of the list, colors
             color = colors[color_ind_array[x]]
-
-            
+           
             figure2.add_trace(go.Scatter(x=time_list,y=diff, mode='lines', name=name, legendgroup=name, marker_color=color)) # name, 'hall_sensors'
+            figure2.add_trace(go.Scatter(x=steady_time,y=steady_val, mode='markers', name=name, legendgroup=name, marker_color=color)) # name, 'hall_sensors'
+            figure4.add_trace(go.Scatter(x=steady_time,y=dist_trav, mode='markers', name=name, legendgroup=name, marker_color=color)) # name, 'hall_sensors'
             figure3.add_trace(go.Scatter(x=time_list,y=diff_motive, mode='lines', name=name, legendgroup=name, marker_color=color)) # 'motive'
             #break
-    figure2.show()  
-    figure3.show() 
+    #figure2.show()  
+    #figure3.show() 
+    #figure4.show()
+    print("Average and sd times to steady state:", np.mean(steady_info_time),',', np.std(steady_info_time), "seconds")
+    #print(steady_info_time)
+    print("Average absolute error and its sd for steady state:", np.mean(steady_info_val),',', np.std(steady_info_val), "degrees")
+    #print(abs_steady_info_val)
+    print("Averages for CPU0:", np.mean(CPU0), "CPU1:", np.mean(CPU1), "CPU2:", np.mean(CPU2), "CPU3:", np.mean(CPU3))
+    print("CPU0_sd:", np.std(CPU0), "CPU1_sd:", np.std(CPU1), "CPU2_sd:", np.std(CPU2), "CPU3_sd:", np.std(CPU3))
+    print("Average toff:", np.mean(toff), "toff_sd:", np.std(toff))
     #exit()                  
                     
             
         
     # Process region data
-        
-#exit() 
-# for EV, search motor_command['EV_cmd'] for all indices larger than 2 then save index
-#for i, val in enumerate(motor_cmd['EV_cmd']):
-#    if abs(val) > 2:
-#        # PF, EV, index of new TADA angle then PF, EV, index of next TADA angle that should be 0,0
-#        trial_selector.append([motor_cmd['PF_cmd'][i], val, time2[i], motor_cmd['PF_cmd'][i+1], motor_cmd['EV_cmd'][i+1], time2[i+1]])
-#print(trial_selector)
-#exit()
- 
+         
 # specify the figure lines with time as x and motor cmd and listen as y
 #figure.data = []
 
@@ -325,34 +360,10 @@ else:
 #figure4.add_trace(go.Scatter(x=time1, y=motor_listen['t_off'], mode='lines', name='timing_offset_lines'))
 #figure4.show()
 
-# Notes: 
-#        need to be careful with taking timing data; need to get timestamp when data was published not when it is rosbag-ed
-
-#figure2.update_layout(title_text="Average Moment Peaks for a given speed")
-#figure2.update_layout(xaxis1_title="TADA angle (anatomical angle)", yaxis_title="Frontal Moment (N*m)")
-#figure2.update_layout(xaxis2_title="TADA angle (anatomical angle)", yaxis2_title="Sagittal Moment (N*m)")
-##figure2.update_layout(xaxis3_title="TADA angle (anatomical angle)", yaxis3_title="Resultant Moment (N*m)")
-#figure2.update_layout(legend_title="Speed (m/s)")
-
 #figure.write_html(folder+'file_motor.html')
 #figure_polar.write_image(f'{bag_folder_path}/file_polar.svg')
 #figure_polar.write_image(f'{bag_folder_path}/file_polar.png')
 
-#fig = figure2
-#figure2['layout'].update(height=1000)  
-
-#import dash
-#import dash_core_components as dcc
-#import dash_html_components as html
-#import dash_bootstrap_components as dbc
-
-#app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
-#app.layout = html.Div([
-#    dcc.Graph(figure=fig), ], 
-##style = {'display': 'inline-block', 'height': '100%'}
-#)
-
-#app.run_server(debug=True, use_reloader=False, port=8050)
 
 
 
