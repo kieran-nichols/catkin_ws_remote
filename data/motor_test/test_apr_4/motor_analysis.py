@@ -228,8 +228,7 @@ if step==0:
     with open('region_motor_all.pickle', 'wb') as handle: # region_motor_all, region_angle_accurray
         pickle.dump(regions, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-else:
-    
+else:    
     steady_info_time = []
     steady_info_val = []
     steady_info_displacement = []
@@ -273,12 +272,11 @@ else:
             toff = metric_toff[2]            
             
             # use list comprehension to find the difference of each item of two lists: values_list[1] and values_list[0] and create a new list
-            min_list_length = min(len(time_list), len(PF_command), len(PF_actual))
             #print(len(time_list), len(PF_command), len(PF_actual))
+            min_list_length = min(len(time_list), len(PF_command), len(PF_actual)) # ensure resulting list is as long as the min length of each list
             diff = [PF_command[i] - PF_actual[i] for i in range(min_list_length)]
             diff_motive = [PF_command[i] - PF_motive[i] for i in range(min_list_length)]
 
-            move_time = {'steady_time':[], 'steady_index':[], 'error':[]}
             prev_val = 0
             i = 0
             # find movement time by searching for a change of value starting at the end of the diff arrays
@@ -313,18 +311,12 @@ else:
     #figure3.show() 
     #figure4.show()
     print("Average and sd times to steady state:", np.mean(steady_info_time),',', np.std(steady_info_time), "seconds")
-    #print(steady_info_time)
     print("Average absolute error and its sd for steady state:", np.mean(steady_info_val),',', np.std(steady_info_val), "degrees")
-    #print(abs_steady_info_val)
-    print("Averages for CPU0:", np.mean(CPU0), "CPU1:", np.mean(CPU1), "CPU2:", np.mean(CPU2), "CPU3:", np.mean(CPU3))
-    print("CPU0_sd:", np.std(CPU0), "CPU1_sd:", np.std(CPU1), "CPU2_sd:", np.std(CPU2), "CPU3_sd:", np.std(CPU3))
+    print("Averages and sd for CPU0:", [np.mean(CPU0), np.std(CPU0)], "CPU1:", [np.mean(CPU1), np.std(CPU1)], "CPU2:", [np.mean(CPU2), np.std(CPU2)], "CPU3:", [np.mean(CPU3), np.std(CPU3)])
+    print("Average CPU load:", np.mean([CPU0, CPU1, CPU2, CPU3]), "CPU_sd:", np.std([CPU0, CPU1, CPU2, CPU3]))
     print("Average toff:", np.mean(toff), "toff_sd:", np.std(toff))
-    #exit()                  
-                    
-            
-        
-    # Process region data
-         
+    #exit()                        
+                   
 # specify the figure lines with time as x and motor cmd and listen as y
 #figure.data = []
 
