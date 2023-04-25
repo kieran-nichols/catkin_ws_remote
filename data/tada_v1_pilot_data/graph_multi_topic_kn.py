@@ -48,8 +48,11 @@ colors = ['red', 'blue', 'green']
 
 figure = go.Figure()
 figure1 = go.Figure()
-figure2 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
-figure3 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
+figure2 = go.Figure()
+figure3 = go.Figure()
+figure4 = go.Figure()
+#figure2 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
+#figure3 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 figure_polar = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2], horizontal_spacing=0.075,)# subplot_titles=("Plantarflexor Moment", "Eversion Moment", "Resultant Moment")) 
 
 color_dict = dict(zip(['slow', 'med', 'fast'], colors))
@@ -60,7 +63,7 @@ motor_command = {'m1_cmd':[], 'm2_cmd':[], 'PF_cmd':[], 'EV_cmd':[], 'CPU0':[], 
 xsens_joint_angle = {'hip_sag':[], 'knee_sag':[], 'ankle_sag':[]}
 xsens_com = {'com_pos_x':[], 'com_pos_y':[], 'com_pos_z':[]}
 
-step = 1
+step = 2
 
 # convert the rosbag to csv files that are based on topics
 if step==0:
@@ -149,7 +152,6 @@ elif step==1:
     all_metrics = [moments, imu_data, motor_command, xsens_joint_angle, xsens_com, linear_moments]
     all_time = [time, time1, time2, time3, time4, time5]
     topic_individual_dict = {}
-    region = []
     regions = []
         
     # create topic regions that are lists of [angle_title, PF, EV, moments, imu_data, motor_command, xsens_joint_angle, xsens_com, linear_moments]
@@ -165,7 +167,7 @@ elif step==1:
         start_time = trial_item[2]
         end_time = trial_item[5]
         #print(start_time, end_time)
-        #print(value1[0])   
+        #print(value1[0])  
         
         # search each topic/metric for that region of time
         for j, metric_val in enumerate(all_metrics):
@@ -178,23 +180,27 @@ elif step==1:
             # find start_index of all_time[j] that is the value of start_time
             #print(all_time[j])
             list_of_time = []
+            #print(start_time)
+            # search for the first index when metric_time is equal to start_time
+            #base_time = metric_time.index(start_time)            
+            
+            # list_of_time is the same for all topics of the same metric
             for p, value in enumerate(metric_time):
                 #print(p)
-                if value <= start_time:
-                    start_index = p
-                if value <= end_time:
-                    end_index = p
+                if value >= start_time and value <= end_time:
+                        list_of_time.append(value - start_time)
                     #break
             # ensure that the list of time that starts at 0        
-            list_of_time = metric_time[start_index:end_index] - metric_time[start_index]
+            #list_of_time = metric_time[start_index:end_index] - metric_time[start_index]
             #print(list_of_values)
 
-            for key, (value1) in enumerate(metric_val.items()):    
+            for key, value1 in enumerate(metric_val.items()):    
                 list_of_values = []
+                
                 for p, value in enumerate(value1[1]):
                     #print(p)
                     topic_time = all_time[j][p]
-                    if value >= start_time and value <= end_time:
+                    if topic_time >= start_time and topic_time <= end_time:
                         list_of_values.append(value)
                                  
                 # creates labels for plotting and legened grouping based on topics
@@ -252,16 +258,25 @@ elif step==2:
         # Create break up regions into regions, a region is for a chunck of time
         for x, region in enumerate(regions):
             #print(region[2])
-            metric_cmd = region[2]['PF_cmd']
-            PF_command = metric_cmd[2] # 0 is PF for metric[0]
-            time_list = [z for z in metric_cmd[1]]# need to split up panda
-            name_ind = metric_cmd[0].find('PF =')
-            name = metric_cmd[0][name_ind:]   
+            brain_cmd = region[2]['PF_cmd']
+            PF_command = brain_cmd[2] # 0 is PF for metric[0]
+            time_cmd = [z for z in brain_cmd[1]]
             
-            #metric_actual = region[3]['curr_PF']
-            #PF_actual = metric_actual[2] # 0 is PF for metric[0] 
-            print(time_list)
+            imu = region[1]['gyro_z'] # 1 is IMU
+            imu_gyro = imu[2]
+            time_imu = [z for z in imu[1]]# need to split up panda
             
+            name_ind = brain_cmd[0].find('PF =')
+            name = brain_cmd[0][name_ind:]   
+            
+            #print(time_cmd)
+            #print(PF_command)
+            #print(time_imu)
+            #print(imu_gyro)
+            
+            # sample graph to check variables
+            figure4.add_trace(go.Scatter(x=time_imu,y=imu_gyro, mode='lines', name=name))
+    figure4.show()  
 else: print("pick a valid option")
 
 if step==1:
