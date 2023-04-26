@@ -103,6 +103,7 @@ def TADA_angle(M1,M2):
     return PF,EV,q1,q5
 
 # convert the rosbag to csv files that are based on topics
+# this section is untested with new bag files. There is a small change you may get some errors.
 if step==0:
     # loop through each topic
     for topic in topics:
