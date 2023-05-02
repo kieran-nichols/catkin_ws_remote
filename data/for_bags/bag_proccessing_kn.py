@@ -27,7 +27,8 @@ figure = go.Figure()
 figure1 = go.Figure()
 figure2 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 figure_peaks = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2], subplot_titles=("Plantarflexor Peaks", "Eversion Peaks"))   
-figure3 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
+figure3 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009) 
+figure_state = go.Figure()     
 figure_polar = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2],  subplot_titles=("Plantarflexor Moment", "Eversion Moment")) 
 
 color_dict = dict(zip(['slow', 'med', 'fast'], colors))
@@ -45,15 +46,18 @@ speed_sag = []
 speed_front = []
 peak_avg_result_array = []
 speed_array = []
+error_on_raise_delay = []
+error_on_fall_delay = []
 #print(color_dict)
 #print(TADA_angle_dict)
 
 # loop through each file
 #for file in files:
-#    # Execute the command and retrieve the output
-#    subprocess.run('rostopic echo -b {} -p /europa_topic > data_kn/europa_topic_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)
+    # Execute the command and retrieve the output
+    #subprocess.run('rostopic echo -b {} -p /europa_topic > data_kn/europa_topic_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)
     #subprocess.run('rostopic echo -b {} -p /sensing_topic > data_kn/sensing_topic_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)  
-    
+    #subprocess.run('rostopic echo -b {} -p /angular_moments > data_kn/angular_moments_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)
+#raise SystemExit
 for i, file in enumerate(files): 
     if i>= 15: break
     #print(file)
@@ -70,8 +74,29 @@ for i, file in enumerate(files):
     # Execute the command and retrieve the output
     #subprocess.run('rostopic echo -b {} -p /europa_topic > data_kn/europa_topic_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)
     # read the data from the file
-    data = pd.read_csv('data_kn/europa_topic_{}.csv'.format(file))
+    data = pd.read_csv('data_kn/europa_topic_{}.csv'.format(file)) 
     data.columns = data.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
+
+    data_sensing = pd.read_csv('data_kn/sensing_topic_{}.csv'.format(file)) 
+    data_sensing.columns = data_sensing.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
+    data_sensing_state = data_sensing.field_state
+    print(data_sensing_state)
+    data_angular = pd.read_csv('data_kn/angular_moments_{}.csv'.format(file)) 
+    data_angular.columns = data_angular.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
+    data_angular_r = [data_angular.field_data16, data_angular.field_data17, data_angular.field_data18 ] #foot
+    data_angular_l = [data_angular.field_data37, data_angular.field_data38, data_angular.field_data39 ] #foot
+
+
+    ######calculating error: to compare state###########
+    for i in range(1, len(data_sensing_state)):
+        if data_sensing_state[i-1]==0 and data_sensing_state[i]==1:
+            b = data_angular_r[1].index(min(data_angular_r[1][i-20:i+20]))
+            error_on_raise_delay.append(data_sensing.time[i] - data_angular.field_data0[b])
+        if data_sensing_state[i-1]==1 and data_sensing_state[i]==0:
+            b = data_angular_r[1].index(min(data_angular_r[1][i-20:i+20]))
+            error_on_fall_delay.append(data_sensing.time[i] - data_angular.field_data0[b])
+
+    
     #print(data.field_moment)
     #time = data.time
     #real_time = (data.time - data.time[0])/1_000_000_000
@@ -147,11 +172,8 @@ for i, file in enumerate(files):
     #peak_avg_front[i] = np.mean(peak_avg_array_front)
     #figure2.add_trace(go.Scatter(x=condition_array, y=peak_avg_result_array, mode='markers', name=speed, marker_color=color_dict[speed],legendgroup=legendgroup, showlegend=show_legend),2,1)
     
-#fig.update_layout(title_text="All Files with Peaks")
-#figure.show()
-#print(speed_sag, '\n', condition_sag, '\n', peak_avg_array_sag)
-#print(peak_avg_array_front)
-
+figure_state.add_trace(go.Scatter(y=error_on_raise_delay, mode='lines', name="Raise Delay"))
+figure_state.add_trace(go.Scatter(y=error_on_fall_delay, mode='lines', name = "Fall Delay"))
 # sort through the data to display a line graph for the average peaks for each condition and give a color for each speed
 peak_sum_sag = [0,0,0,0,0] #[0,0,0]
 peak_sum_front = [0,0,0,0,0] 
@@ -173,9 +195,11 @@ for i in range(1,3):
         result_values[j] = peak_avg_result_array[j*3 + i]
         peak_sum_sag[j]+=y_values[j]/3
         peak_sum_front[j]+=z_values[j]/3
-
+    
     new_color = colors[2-i] # fast is the first trial, then med, then slow
     legendgroup=f'group1{2-i}'
+
+
     figure2.add_trace(go.Scatter(x=x_values, y=y_values, mode='lines', name='peak_sag_avg_array',marker=dict(color=new_color), showlegend=show_legend, legendgroup=legendgroup),2,1)
     figure2.add_trace(go.Scatter(x=x_values, y=z_values, mode='lines', name=speed, marker=dict(color=new_color), legendgroup=legendgroup),1,1) # 'peak_front_avg_array', showlegend=show_legend,
     #figure2.add_trace(go.Scatter(x=x_values, y=result_values, mode='lines+markers', name=speed, marker=dict(color=new_color), legendgroup=legendgroup,),3,1) # name='peak_front_avg_array'
@@ -229,7 +253,8 @@ figure_polar.update_layout(legend=dict(title="Speed (m/s)", orientation="h",))
 #figure.update_layout(legend=dict(x='slow', y='medium',z='fast'))
 figure.show()
 figure2.show()
-figure3.show()
+#figure3.show()
+figure_state.show()
 figure_peaks.show()
 figure_polar.show()
 
