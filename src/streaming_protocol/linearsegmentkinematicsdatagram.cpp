@@ -124,7 +124,7 @@ void LinearSegmentKinematicsDatagram::printData() const
 	float who = m_data.at(0).segmentId;
 
 	//adding only lower leg sensor's reading. Each number corresponds to a certain sensor which is why we have a 0 (pelv) and iterate through others)
-	vec.insert(vec.end(), { who, m_data.at(0).acceleration[0], m_data.at(0).acceleration[1],m_data.at(0).acceleration[2] });
+	vec.insert(vec.end(), { who, m_data.at(0).velocity[0], m_data.at(0).velocity[1], m_data.at(0).velocity[2], m_data.at(0).acceleration[0], m_data.at(0).acceleration[1],m_data.at(0).acceleration[2] });
 
 	for (int i = 15; i < 22; i++)
 	{
@@ -133,7 +133,7 @@ void LinearSegmentKinematicsDatagram::printData() const
 		}
 		float who = m_data.at(i).segmentId;
 
-		vec.insert(vec.end(), { who, m_data.at(i).acceleration[0], m_data.at(i).acceleration[1],m_data.at(i).acceleration[2] });
+		vec.insert(vec.end(), { who, m_data.at(i).velocity[0], m_data.at(i).velocity[1], m_data.at(i).velocity[2], m_data.at(i).acceleration[0], m_data.at(i).acceleration[1],m_data.at(i).acceleration[2] });
 	
 	}
 	linear_moments.data = (vec);
