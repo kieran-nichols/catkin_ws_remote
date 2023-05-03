@@ -13,7 +13,7 @@ import types
 
 # find all files with '.bag' in name
 #path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\for_bags"
-path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\for_bags_2"
+path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\ISB_2023_data"
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
 #print(files, "\nlist_length= ", len(files))
 
@@ -45,9 +45,9 @@ peak_avg_front = []
 speed_sag = []
 speed_front = []
 peak_avg_result_array = []
-speed_array = ['slow', 'med', 'fast']
+speed_array = []
 
-step = 1
+step = 2
 if step==0:
     # loop through each file
     for file in files:
@@ -66,7 +66,7 @@ elif step==1:
         condition_from_file = f'{description[1]}, {description[2]}'
         # check if the condition is in the dictionary then pick the match
         condition = TADA_angle_dict[condition_from_file]
-        #last_item = description[3].split('.')
+        last_item = description[3].split('.')
         speed = last_item[0]
     
         # Read europa data
@@ -130,9 +130,9 @@ elif step==1:
             figure.add_trace(go.Scatter(x=time1, y=-10*imu_data['gyro_z'], mode='lines'))
             #figure.add_trace(go.Scatter(x=real_time1[shift_index:], y=-20*imu_data['gyro_z'][shift_index:], mode='lines'))
     
-            condition_list = [condition]*len(peaks)
-            speed_list = [speed]*len(peaks)
-            #print(condition_list, speed_list)
+            #condition_list = [condition]*len(peaks)
+            #speed_list = [speed]*len(peaks)
+            ##print(condition_list, speed_list)
             #figure1.add_trace(go.Scatter(x=condition_list, y=moment[peaks], mode='markers', name=speed, marker_color=color_dict[speed]))
             #legendgroup = f'group{speed_dict[speed]}'
             #figure2.add_trace(go.Scatter(x=condition_list, y=moment[peaks], mode='markers', name=speed, marker_color=color_dict[speed],legendgroup=legendgroup, showlegend=show_legend),j+1,1)
@@ -262,7 +262,6 @@ elif step==2:
 #app.run_server(debug=True, use_reloader=False, port=8050)
 
 else: print("pick a valid option")
-
 
 
 

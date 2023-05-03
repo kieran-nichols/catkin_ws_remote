@@ -15,7 +15,7 @@ import math
 import pickle
 from plotly.colors import n_colors
 
-step = 2
+step = 1
 time_offset = 0
 
 # create array of 8 different colors from red to blue
@@ -105,7 +105,16 @@ def TADA_angle(M1,M2):
 # convert the rosbag to csv files that are based on topics
 # this section is untested with new bag files. There is a small change you may get some errors.
 if step==0:
-    # loop through each topic
+    # loop through files
+    #for file in files:
+    #    # create folder using subprocess
+    #    print(file)
+    #    break
+    #    subprocess.run('mkdir {}'.format(file), capture_output=True, text=True, shell=True)
+
+    #    for topic in topics:
+    #        subprocess.run('rostopic echo -b {} -p /{} > {}.csv'.format(file,topic,topic), capture_output=True, text=True, shell=True)
+    ## loop through each topic
     for topic in topics:
     #    # Execute the command and retrieve the output
         subprocess.run('rostopic echo -b {} -p /{} > {}.csv'.format(files[0],topic,topic), capture_output=True, text=True, shell=True)
@@ -135,7 +144,7 @@ elif step==1:
     time1 = data1.field_t - data.field_t[0] - time_offset#(data1.time - 1*data.time[time_offset])/1_000_000_000 # there seems to be a consistent 1 or 2.4 sec delay depending on trial due when rosbag topics are started
     motor_listen['curr_pos1'] = data1.field_curr_pos1/567
     motor_listen['curr_pos2'] = data1.field_curr_pos2/567
-    motor_listen['t_off'] = data1.field_toff
+    motor_listen['t_off'] = data1.field_toff/1000
     #i=0
     for i,x in enumerate(data1.field_curr_pos1):
         #for y in data.field_motor2_move:
@@ -272,7 +281,7 @@ elif step==1:
     figure3.add_trace(go.Scatter(x=time, y=motor_cmd['CPU3'], mode='lines', name='CPU3'))
     #figure3.show()
 
-    figure4.add_trace(go.Scatter(x=time1, y=motor_listen['t_off'], mode='markers', name='timing_offset_markers'))
+    figure4.add_trace(go.Scatter(x=time1, y=motor_listen['t_off'], mode='markers', name='timing_offset_markers in microsec'))
     figure4.add_trace(go.Scatter(x=time1, y=motor_listen['t_off'], mode='lines', name='timing_offset_lines'))
     #figure4.show()
 

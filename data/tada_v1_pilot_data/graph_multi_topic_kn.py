@@ -244,43 +244,8 @@ elif step==1:
     # Save region data to a pickle file
     with open('region_data.pickle', 'wb') as handle:
         pickle.dump(regions, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            
-        ########################################
-elif step==2:
-    # OR Sofya, you can instead process the peak finder here (focus on pylon moment, ang vel of shank, CM forward vel, foot segment pos and vel, hip/knee/ankle angles)
-    # Add the peaks of the chosen to topic_individual_peaks_dict
-    
-    
-    # Open pickle file for region data
-    with open('region_data.pickle', 'rb') as handle:
-        regions = pickle.load(handle)
-               
-        # Create break up regions into regions, a region is for a chunck of time
-        for x, region in enumerate(regions):
-            #print(region[2])
-            brain_cmd = region[2]['PF_cmd']
-            PF_command = brain_cmd[2] # 0 is PF for metric[0]
-            time_cmd = [z for z in brain_cmd[1]]
-            
-            imu = region[1]['gyro_z'] # 1 is IMU
-            imu_gyro = imu[2]
-            time_imu = [z for z in imu[1]]# need to split up panda
-            
-            name_ind = brain_cmd[0].find('PF =')
-            name = brain_cmd[0][name_ind:]   
-            
-            #print(time_cmd)
-            #print(PF_command)
-            #print(time_imu)
-            #print(imu_gyro)
-            
-            # sample graph to check variables
-            figure4.add_trace(go.Scatter(x=time_imu,y=imu_gyro, mode='lines', name=name))
-    figure4.show()  
-else: print("pick a valid option")
-
-if step==1:
-    ## Show entire time series for data of interest; Plot entire experiment
+        
+        ## Show entire time series for data of interest; Plot entire experiment
     # Future goal to plot the below graph using a for loop with the region variable allowing for much less written code
     figure.add_trace(go.Scatter(x=time, y=moments['mx'], mode='lines', name='Mx'))
     figure.add_trace(go.Scatter(x=time, y=moments['my'], mode='lines', name='My'))
@@ -313,6 +278,42 @@ if step==1:
 
     figure.update_layout(title='All data', xaxis_title='Time (s)', yaxis_title='Value')
     figure.show() 
+            
+        ########################################
+elif step==2:
+    # OR Sofya, you can instead process the peak finder here (focus on pylon moment, ang vel of shank, CM forward vel, foot segment pos and vel, hip/knee/ankle angles)
+    # Add the peaks of the chosen to topic_individual_peaks_dict
+    
+    
+    # Open pickle file for region data
+    with open('region_data.pickle', 'rb') as handle:
+        regions = pickle.load(handle)
+               
+        # Create break up regions into regions, a region is for a chunck of time
+        for x, region in enumerate(regions):
+            #print(region[2])
+            brain_cmd = region[2]['PF_cmd']
+            PF_command = brain_cmd[2] # 0 is PF for metric[0]
+            time_cmd = [z for z in brain_cmd[1]]
+            
+            imu = region[1]['gyro_z'] # 1 is IMU
+            imu_gyro = imu[2]
+            time_imu = [z for z in imu[1]]# need to split up panda
+            
+            name_ind = brain_cmd[0].find('PF =')
+            name = brain_cmd[0][name_ind:]   
+            
+            #print(time_cmd)
+            #print(PF_command)
+            #print(time_imu)
+            #print(imu_gyro)
+            
+            # sample graph to check variables
+            figure4.add_trace(go.Scatter(x=time_imu,y=imu_gyro, mode='lines', name=name))
+    figure4.show()
+    
+else: print("pick a valid option")
+
 
 
 # Save the data to files
