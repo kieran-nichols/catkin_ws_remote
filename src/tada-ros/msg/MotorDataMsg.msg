@@ -4,3 +4,13 @@ int32 motor1_move
 int32 motor2_move
 int32 motor1_torque
 int32 motor2_torque
+float32 PF_cmd
+float32 EV_cmd
+float32 PF_curr
+float32 EV_curr
+float32 CPU0
+float32 CPU1
+float32 CPU2
+float32 CPU3
+float32 t
+float32 valid

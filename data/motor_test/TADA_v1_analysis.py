@@ -15,7 +15,7 @@ import math
 import pickle
 from plotly.colors import n_colors
 
-step = 2
+step = 1
 time_offset = 0
 
 # create array of 8 different colors from red to blue
@@ -25,8 +25,10 @@ colors = n_colors('rgb(0, 255, 255)', 'rgb(255, 0, 255)', 8, colortype = 'rgb')
 other_colors = n_colors('rgb(255, 0, 255)', 'rgb(0, 255, 255)', 8, colortype = 'rgb')
 
 # find all files with '.bag' in name
-path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\motor_test\software_stab"
+#path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\motor_test\software_stab"
+path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\motor_test\test_may_6"
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
+print(files)
 topics = ['motor_command','motor_listen']
 
 figure = go.Figure()
@@ -104,10 +106,12 @@ if step==0:
         # create folder using subprocess
         reduced_file_name = file[:-4]
         print(reduced_file_name)        
-        subprocess.run('mkdir {}'.format(reduced_file_name), capture_output=True, text=True, shell=True)
+        subprocess.run('mkdir {}'.format(path+'\\'+reduced_file_name), capture_output=True, text=True, shell=True)
 
+        
         for topic in topics:
-            subprocess.run('rostopic echo -b {} -p /{} > {}\{}.csv'.format(file,topic,reduced_file_name,topic), capture_output=True, text=True, shell=True)
+            print("rostopic echo -b {} -p /{} > {}\{}.csv".format(path+'\\'+file,topic,path+'\\'+reduced_file_name,topic))
+            subprocess.run('rostopic echo -b {} -p /{} > {}\{}.csv'.format(path+'\\'+file,topic,path+'\\'+reduced_file_name,topic), capture_output=True, text=True, shell=True)
             
         #break
     ## loop through each topic
@@ -116,9 +120,15 @@ if step==0:
     #    subprocess.run('rostopic echo -b {} -p /{} > {}.csv'.format(files[0],topic,topic), capture_output=True, text=True, shell=True)
 
 elif step==1:
+    print(path)
+    # find folders in path
+    folder = path+'\\'+'final_test_with_motive\\'
+    files = os.listdir(folder)
+    files = files[0]
+    print(files)
     # data folder
     #folder = 'no_motive\\'
-    #folder = 'P10_I1000_S50\\'
+    
     
     
     for file in files:
@@ -128,8 +138,8 @@ elif step==1:
         motor_listen_new = {'curr_PF':[], 'curr_EV':[]}
         motive = {'time':[], 'rot_X':[], 'rot_Y':[], 'rot_Z':[], 'rot_W':[]}
         # Read motor cmd data from csv
-        folder = f'{file[:-4]}\\'
-        print(folder)#; break
+        #folder = f'{file[:-4]}\\'
+        #print(folder)#; break
         #data = pd.read_csv(folder+'motor_cmd2.csv')
         data = pd.read_csv(folder+'motor_command.csv')
         data.columns = data.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
@@ -220,7 +230,7 @@ elif step==1:
                     start_index = start_info['start_index'][i]
                     end_index = start_info['start_index'][i+1]
                     list_of_values = []
-                    #print(topic[0])
+                    print(topic[0])
                     # find the region that is within the start and end time
                     for q, q_val in enumerate(topic[1]):
                         #for l, value1 in enumerate(q_val):

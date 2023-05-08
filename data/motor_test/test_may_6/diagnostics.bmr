@@ -1,0 +1,123 @@
+class update_tada_ros_IMUDataMsg_8a370f41369e4ff9d7cc2dcec3f66968(MessageUpdateRule):
+	old_type = "tada_ros/IMUDataMsg"
+	old_full_text = """
+float64 accel_x
+float64 accel_y
+float64 accel_z
+float64 gyro_x
+float64 gyro_y
+float64 gyro_z
+float64 state
+float64 swing_time
+float64 t
+float64 steps
+"""
+
+	new_type = "tada_ros/IMUDataMsg"
+	new_full_text = """
+float64 accel_x
+float64 accel_y
+float64 accel_z
+float64 gyro_x
+float64 gyro_y
+float64 gyro_z
+float64 state
+float64 swing_time
+"""
+
+	order = 0
+	migrated_types = []
+
+	valid = False
+
+	def update(self, old_msg, new_msg):
+		new_msg.accel_x = old_msg.accel_x
+		new_msg.accel_y = old_msg.accel_y
+		new_msg.accel_z = old_msg.accel_z
+		new_msg.gyro_x = old_msg.gyro_x
+		new_msg.gyro_y = old_msg.gyro_y
+		new_msg.gyro_z = old_msg.gyro_z
+		new_msg.state = old_msg.state
+		new_msg.swing_time = old_msg.swing_time
+		#No field to match field t from old message
+		#No field to match field steps from old message
+class update_tada_ros_MotorDataMsg_93917f2a09b44c2be7f84accf38c246b(MessageUpdateRule):
+	old_type = "tada_ros/MotorDataMsg"
+	old_full_text = """
+int32 mode
+int32 duration
+int32 motor1_move
+int32 motor2_move
+int32 motor1_torque
+int32 motor2_torque
+float32 PF_cmd
+float32 EV_cmd
+float32 PF_curr
+float32 EV_curr
+float32 CPU0
+float32 CPU1
+float32 CPU2
+float32 CPU3
+float32 t
+float32 valid
+"""
+
+	new_type = "tada_ros/MotorDataMsg"
+	new_full_text = """
+int32 mode
+int32 duration
+int32 motor1_move
+int32 motor2_move
+int32 motor1_torque
+int32 motor2_torque
+"""
+
+	order = 0
+	migrated_types = []
+
+	valid = False
+
+	def update(self, old_msg, new_msg):
+		new_msg.mode = old_msg.mode
+		new_msg.duration = old_msg.duration
+		new_msg.motor1_move = old_msg.motor1_move
+		new_msg.motor2_move = old_msg.motor2_move
+		new_msg.motor1_torque = old_msg.motor1_torque
+		new_msg.motor2_torque = old_msg.motor2_torque
+		#No field to match field PF_cmd from old message
+		#No field to match field EV_cmd from old message
+		#No field to match field PF_curr from old message
+		#No field to match field EV_curr from old message
+		#No field to match field CPU0 from old message
+		#No field to match field CPU1 from old message
+		#No field to match field CPU2 from old message
+		#No field to match field CPU3 from old message
+		#No field to match field t from old message
+		#No field to match field valid from old message
+class update_tada_ros_MotorListenMsg_16758636abd34f69fe5a976e7e2a04ca(MessageUpdateRule):
+	old_type = "tada_ros/MotorListenMsg"
+	old_full_text = """
+int32 curr_pos1
+int32 curr_pos2
+int64 toff
+int32 motor_fail
+float32 t
+"""
+
+	new_type = "tada_ros/MotorListenMsg"
+	new_full_text = """
+int32 curr_pos1
+int32 curr_pos2
+"""
+
+	order = 0
+	migrated_types = []
+
+	valid = False
+
+	def update(self, old_msg, new_msg):
+		new_msg.curr_pos1 = old_msg.curr_pos1
+		new_msg.curr_pos2 = old_msg.curr_pos2
+		#No field to match field toff from old message
+		#No field to match field motor_fail from old message
+		#No field to match field t from old message
