@@ -101,6 +101,7 @@ void CenterOfMassDatagram::printData() const
 
 	///////////////////////////////////
 
+
 	vec.insert(vec.end(), { final_time });
 	//adding in certain sensor information
 	vec.insert(vec.end(), { m_pos[0], m_pos[1], m_pos[2], 
@@ -108,6 +109,7 @@ void CenterOfMassDatagram::printData() const
 		m_acc[0], m_acc[1], m_acc[2] });
 	
 	xsens_com.data = (vec);
+	//printf("%f", m_pos[0]);
 	pub_xsens_com.publish(xsens_com);
 	ros::spinOnce();
 }
