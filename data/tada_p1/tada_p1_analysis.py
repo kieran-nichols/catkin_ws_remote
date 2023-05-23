@@ -15,7 +15,7 @@ import math
 import pickle
 from plotly.colors import n_colors
 
-step = 2
+step = 1
 time_offset = 0
 
 # create array of 8 different colors from red to blue
@@ -26,9 +26,9 @@ other_colors = n_colors('rgb(255, 0, 255)', 'rgb(0, 255, 255)', 255, colortype =
 
 # find all files with '.bag' in name
 #path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\tada_p1"
-path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\May-19-v1"
+path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\motor_test\test_may_22"
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
-print(files)
+#print(files)
 topics = ['motor_command','motor_listen']
 
 figure = go.Figure()
@@ -122,7 +122,7 @@ if step==0:
 elif step==1:
     print(path)
     # find folders in path
-    folder = path+'\\'+'short_test\\'#+'data_attempt2\\'
+    folder = path+'\\'+'P10I100S250Tor1000Vel2000\\'#+'data_attempt2\\' P10I100S250Tor1000Vel2000
     files = os.listdir(folder)
     files = files[0]
     print(files)
@@ -322,152 +322,150 @@ elif step==2:
     steady_info_time = []
     steady_info_val = []
     steady_info_displacement = []
-    #folder = 'P10_I1000_S50\\'
-    #chosen_topic_array = ['PF_cmd', 'EV_cmd', 'curr_PF', 'curr_EV']
+    #files = files[1]
+    print(files)
+    folder = path+'\\'+'P10I100S250Tor1500Vel5000\\'#+'data_attempt2\\'    #chosen_topic_array = ['PF_cmd', 'EV_cmd', 'curr_PF', 'curr_EV']
     # Open pickle file for region data
     
-    for file in files:
-        folder = f'{file[:-4]}\\'
-        print(folder)#; break
+    #for file in files[1]:
+        #folder = f'{file[:-4]}\\'
+        #print(folder)#; break
         
-        with open(path+'\\'+folder+'region_motor.pickle', 'rb') as handle: # region_motor_all, region_angle_accurray, region_motor_quat
-            regions = pickle.load(handle)
-            color_ind_array_old = [0, 1, 0, 1, 0, 1, 0, 1]
-            color_ind_array = [0, 1, 0, 1, 0, 1, 0, 1]
-            # add one to each item of color_ind_array and append it to color_ind_array. Do this 8 times
-            for i in range(8):
-                color_ind_array_new = [x+i for x in color_ind_array_old]
-                color_ind_array += color_ind_array_new
-            #print(color_ind_array); exit()
+    #with open(path+'\\'+folder+'region_motor.pickle', 'rb') as handle: # region_motor_all, region_angle_accurray, region_motor_quat
+    with open(folder+'region_motor.pickle', 'rb') as handle: # region_motor_all, region_angle_accurray, region_motor_quat
+        regions = pickle.load(handle)
+    color_ind_array_old = [0, 1, 0, 1, 0, 1, 0, 1]
+    color_ind_array = [0, 1, 0, 1, 0, 1, 0, 1]
+    # add one to each item of color_ind_array and append it to color_ind_array. Do this 8 times
+    for i in range(8):
+        color_ind_array_new = [x+i for x in color_ind_array_old]
+        color_ind_array += color_ind_array_new
+    #print(color_ind_array); exit()
         
-            # Create break up regions into regions, a region is for a chunck of time
+    # Create break up regions into regions, a region is for a chunck of time
             
-            steady_info_time = [[],[]]
-            steady_info_val = [[],[]]
-            steady_info_displacement = [[],[]]
+    steady_info_time = [[],[]]
+    steady_info_val = [[],[]]
+    steady_info_displacement = [[],[]]
             
-            for x, region in enumerate(regions):
+    for x, region in enumerate(regions):
             
-                # region[0] refers to cmds and [1] refers to listen
-                metric_cmd = region[0]['PF_cmd']
-                PF_command = metric_cmd[2] # 0 is PF for metric[0]
-                time_list = [z for z in metric_cmd[1]]# need to split up panda
-                name_ind = metric_cmd[0].find('PF =')
-                name = metric_cmd[0][name_ind:]   
+        # region[0] refers to cmds and [1] refers to listen
+        metric_cmd = region[0]['PF_cmd']
+        PF_command = metric_cmd[2] # 0 is PF for metric[0]
+        time_list = [z for z in metric_cmd[1]]# need to split up panda
+        name_ind = metric_cmd[0].find('PF =')
+        name = metric_cmd[0][name_ind:]   
             
-                metric_actual = region[1]['curr_PF']
-                PF_actual = metric_actual[2] # 0 is PF for metric[0]             
-                #metric_motive = region[1]['rot_Z']
-                #PF_motive = metric_motive[2] # 0 is PF for metric[0]  
+        metric_actual = region[1]['curr_PF']
+        PF_actual = metric_actual[2] # 0 is PF for metric[0]             
+        #metric_motive = region[1]['rot_Z']
+        #PF_motive = metric_motive[2] # 0 is PF for metric[0]  
             
-                metric_CPU0 = region[0]['CPU0']
-                metric_CPU1 = region[0]['CPU1']
-                metric_CPU2 = region[0]['CPU2']
-                metric_CPU3 = region[0]['CPU3']
-                CPU0 = metric_CPU0[2] 
-                CPU1 = metric_CPU1[2] 
-                CPU2 = metric_CPU2[2] 
-                CPU3 = metric_CPU3[2] 
+        metric_CPU0 = region[0]['CPU0']
+        metric_CPU1 = region[0]['CPU1']
+        metric_CPU2 = region[0]['CPU2']
+        metric_CPU3 = region[0]['CPU3']
+        CPU0 = metric_CPU0[2] 
+        CPU1 = metric_CPU1[2] 
+        CPU2 = metric_CPU2[2] 
+        CPU3 = metric_CPU3[2] 
             
-                #metric_toff = region[1]['t_off']
-                #toff = metric_toff[2]            
+        #metric_toff = region[1]['t_off']
+        #toff = metric_toff[2]            
             
-                # use list comprehension to find the difference of each item of two lists: values_list[1] and values_list[0] and create a new list
-                #print(len(time_list), len(PF_command), len(PF_actual))
-                min_list_length = min(100, len(time_list), len(PF_command), len(PF_actual)) # PF_actual ensure resulting list is as long as the min length of each list or 100 (1 sec)
-                diff = [PF_command[i] - PF_actual[i] for i in range(min_list_length)]
-                #diff_motive = [PF_command[i] - PF_motive[i] for i in range(min_list_length)]
+        # use list comprehension to find the difference of each item of two lists: values_list[1] and values_list[0] and create a new list
+        #print(len(time_list), len(PF_command), len(PF_actual))
+        min_list_length = min(100, len(time_list), len(PF_command), len(PF_actual)) # PF_actual ensure resulting list is as long as the min length of each list or 100 (1 sec)
+        diff = [PF_command[i] - PF_actual[i] for i in range(min_list_length)] #change diff to something elsecd ca
+        #diff_motive = [PF_command[i] - PF_motive[i] for i in range(min_list_length)]
 
-                i = 0
-                # find movement time by searching for a change of value starting at the end of the diff arrays
-                offset = 10
-                steady_time = [0,0]
-                steady_val = [0,0]
-                dist_trav = [0,0]
-                first = 0
+        i = 0
+        # find movement time by searching for a change of value starting at the end of the diff arrays
+        offset = 10
+        steady_time = [0,0]
+        steady_val = [0,0]
+        dist_trav = [0,0]
+        first = 0
             
-                # For hall sensors and motive
-                movements = [diff]#,diff]#, diff_motive]
-                for i, movement in enumerate(movements):
-                    prev_val = 0
-                    #first = 0
-                    for val, t in zip(movement[offset:], time_list[offset:min_list_length]):
-                        #approx_val = round(val, 2)
-                        approx_val = val
-                        difference = abs(approx_val - prev_val)
-                        # find start time when approx val changes value and end time when it stops being equal to approx_val
-                        if abs(approx_val) < 0.25 and difference < 0.25: # change in error in degrees
-                            steady_time[i] = [t]
-                            steady_val[i] = [val]
-                            dist_trav[i] = [abs(movement[0])]
-                            steady_info_time[i].append(t)
-                            steady_info_val[i].append(abs(val)) 
-                            steady_info_displacement[i].append(dist_trav[i])
-                            #print(steady_val[i])
-                            break
+        # For hall sensors and motive
+        movements = [diff]#,diff]#, diff_motive]
+        for i, movement in enumerate(movements):
+            prev_val = 0
+            #first = 0
+            for val, t in zip(movement[offset:], time_list[offset:min_list_length]):
+                #approx_val = round(val, 2)
+                approx_val = val
+                difference = abs(approx_val - prev_val)
+                # find start time when approx val changes value and end time when it stops being equal to approx_val
+                if abs(approx_val) < 0.25 and difference < 0.25: # change in error in degrees
+                    steady_time[i] = [t]
+                    steady_val[i] = [val]
+                    dist_trav[i] = [abs(movement[0])]
+                    steady_info_time[i].append(t)
+                    steady_info_val[i].append(abs(val)) 
+                    steady_info_displacement[i].append(dist_trav[i])
+                    #print(steady_val[i])
+                    break
                         
-                        # need to complete
-                        elif abs(approx_val) > 0.25 and difference < 0.01 and first==0:
-                            steady_time[i] = [t]
-                            steady_val[i] = [val]
-                            dist_trav[i] = [abs(movement[0])]
-                            steady_t = t
-                            stedy_value = abs(val)
-                            steady_disp = dist_trav[i]
-                            first = 1
+                # need to complete
+                elif abs(approx_val) > 0.25 and difference < 0.01 and first==0:
+                    steady_time[i] = [t]
+                    steady_val[i] = [val]
+                    dist_trav[i] = [abs(movement[0])]
+                    steady_t = t
+                    stedy_value = abs(val)
+                    steady_disp = dist_trav[i]
+                    first = 1
                         
-                        # t is equal to last item of time_list
-                        elif t==time_list[min_list_length-1]:
-                            steady_time[i] = [t]
-                            steady_val[i] = [val]
-                            dist_trav[i] = [abs(movement[0])]
+                # t is equal to last item of time_list
+                elif t==time_list[min_list_length-1]:
+                    steady_time[i] = [t]
+                    steady_val[i] = [val]
+                    dist_trav[i] = [abs(movement[0])]
                             
-                            if first!=0:
-                                steady_info_time[i].append(steady_t)
-                                steady_info_val[i].append(stedy_value) 
-                                steady_info_displacement[i].append(steady_disp)
-                            else:
-                                steady_info_time[i].append(t)
-                                steady_info_val[i].append(abs(val)) 
-                                steady_info_displacement[i].append(dist_trav[i])
-                                first = 0
-                            #print(steady_val[i])
-                            break
-                        else: pass
-                        prev_val = approx_val
-                        #i+=1
-                #print(steady_time, steady_val)
-                #print(diff)
-                #print(x, name)  
-                # go to the next item of the list, colors
-                #color = colors[color_ind_array[x]]
-                #other_color = other_colors[color_ind_array[x]]
-                try:
-                    figure2.add_trace(go.Scatter(x=time_list,y=movements[0], mode='lines', name=name, legendgroup=name))#, marker_color=color)) # name, 'hall_sensors'
-                    figure2.add_trace(go.Scatter(x=steady_time[0],y=steady_val[0], mode='markers', name=name, legendgroup=name))#, marker_color=other_color)) # name, 'hall_sensors'
+                    if first!=0:
+                        steady_info_time[i].append(steady_t)
+                        steady_info_val[i].append(stedy_value) 
+                        steady_info_displacement[i].append(steady_disp)
+                    else:
+                        steady_info_time[i].append(t)
+                        steady_info_val[i].append(abs(val)) 
+                        steady_info_displacement[i].append(dist_trav[i])
+                        first = 0
+                    #print(steady_val[i])
+                    break
+                else: pass
+                prev_val = approx_val
+                #i+=1
+        #print(steady_time, steady_val)
+        #print(diff)
+        #print(x, name)  
+        # go to the next item of the list, colors
+        #color = colors[color_ind_array[x]]
+        #other_color = other_colors[color_ind_array[x]]
+        try:
+            figure2.add_trace(go.Scatter(x=time_list,y=movements[0], mode='lines', name=name, legendgroup=name))#, marker_color=color)) # name, 'hall_sensors'
+            figure2.add_trace(go.Scatter(x=steady_time[0],y=steady_val[0], mode='markers', name=name, legendgroup=name))#, marker_color=other_color)) # name, 'hall_sensors'
                     
-                except: pass
-                #figure4.add_trace(go.Scatter(x=steady_time,y=dist_trav, mode='markers', name=name, legendgroup=name, marker_color=color)) # name, 'hall_sensors'
-                #figure3.add_trace(go.Scatter(x=time_list,y=diff_motive, mode='lines', name=name, legendgroup=name, marker_color=color)) # 'motive'
-                 #something in the below line is causing the error due to the length of the arrays or some error in the detector
-                #figure3.add_trace(go.Scatter(x=steady_time[1],y=steady_val[1], mode='lines', name=name, legendgroup=name, marker_color=other_color)) # 'motive'
-                #break
-        figure2.show()  
-        figure2 = go.Figure()
-        #figure3.show() 
-        #figure4.show()
-        #print(steady_info_time); #break
-        print("Average and sd times to steady state:", np.mean(steady_info_time[0]),',', np.std(steady_info_time[0]), "seconds")
-        print("Average absolute error and its sd for steady state:", np.mean(steady_info_val[0]),',', np.std(steady_info_val[0]), "degrees")
-        print("Averages and sd for CPU0:", [np.mean(CPU0), np.std(CPU0)], "CPU1:", [np.mean(CPU1), np.std(CPU1)], "CPU2:", [np.mean(CPU2), np.std(CPU2)], "CPU3:", [np.mean(CPU3), np.std(CPU3)])
-        print("Average CPU load:", np.mean([CPU0, CPU1, CPU2, CPU3]), "CPU_sd:", np.std([CPU0, CPU1, CPU2, CPU3]))
-        #print("Average toff:", np.mean(toff), "toff_sd:", np.std(toff))
-        #exit() 
-        #
-        # Average and sd times to steady state: 0.32458639705882353 , 0.28493547307365363 seconds
-        # Average absolute error and its sd for steady state: 0.9858418024542115 , 2.421143594760132 degrees
-        # Averages and sd for CPU0: [2.3366337011356166, 4.712690390412716] CPU1: [14.383168551001217, 26.100617135281787] CPU2: [7.464356620713036, 8.084266641278454] CPU3: [0.9009901367791812, 2.717945430250144]
-        # Average CPU load: 6.271287252407263 CPU_sd: 14.89749880387883                      
+        except: pass
+        #figure4.add_trace(go.Scatter(x=steady_time,y=dist_trav, mode='markers', name=name, legendgroup=name, marker_color=color)) # name, 'hall_sensors'
+        #figure3.add_trace(go.Scatter(x=time_list,y=diff_motive, mode='lines', name=name, legendgroup=name, marker_color=color)) # 'motive'
+            #something in the below line is causing the error due to the length of the arrays or some error in the detector
+        #figure3.add_trace(go.Scatter(x=steady_time[1],y=steady_val[1], mode='lines', name=name, legendgroup=name, marker_color=other_color)) # 'motive'
+        #break
+    figure2.show()  
+    figure2 = go.Figure()
+    #figure3.show() 
+    #figure4.show()
+    #print(steady_info_time); #break
+    print("Average and sd times to steady state:", np.mean(steady_info_time[0]),',', np.std(steady_info_time[0]), "seconds")
+    print("Average absolute error and its sd for steady state:", np.mean(steady_info_val[0]),',', np.std(steady_info_val[0]), "degrees")
+    print("Averages and sd for CPU0:", [np.mean(CPU0), np.std(CPU0)], "CPU1:", [np.mean(CPU1), np.std(CPU1)], "CPU2:", [np.mean(CPU2), np.std(CPU2)], "CPU3:", [np.mean(CPU3), np.std(CPU3)])
+    print("Average CPU load:", np.mean([CPU0, CPU1, CPU2, CPU3]), "CPU_sd:", np.std([CPU0, CPU1, CPU2, CPU3]))
+    #print("Average toff:", np.mean(toff), "toff_sd:", np.std(toff))
+    #exit() 
+        #                    
 
 
         #figure.write_html(folder+'file_motor.html')

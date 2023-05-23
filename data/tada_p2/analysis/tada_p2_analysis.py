@@ -315,7 +315,7 @@ elif step==2:
         all_peaks, _ = find_peaks(chosen_moment, height=height, distance=50)
         #print(all_peaks)
         #print(len(all_peaks))
-        # pick the middle three peaks or 5 peaks
+        # pick the middle three peaks peaks if there are more than 2 peaks
         if len(all_peaks) > 2:
             peaks = all_peaks[len(all_peaks) // 2 - 1: len(all_peaks) // 2 + 2]
         #elif all_peaks == None or math.isnan(all_peaks): peaks = [0]
@@ -325,7 +325,8 @@ elif step==2:
         print(peaks)
         peaks_time = [time_m[z] for z in peaks]
         peaks_array = [chosen_moment[z] for z in peaks]
-         
+        
+        # ignore warnings for nanmean
         #with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
         try:
@@ -386,13 +387,15 @@ elif step==2:
             #ev_array.append(ev)
             #avg_peak_array.append(int(avg_peak))
     
-    # create scatter plot that has x be ev, y be pf, and marker color and size be avg_peak, I used a 1/10 or 1/30 for frontal or sagittal for marker sizing  and offset the minimum peak, 
     pf_array.append(0.0); ev_array.append(0.0); avg_peak_array.append(np.nanmean(avg_peak_neutral)) # to add all neutral to the mix
     #
     #print(avg_peak_neutral)
+    
+    # create scatter plot that has x be ev, y be pf, and marker color and size be avg_peak, I used a 1/10 or 1/30 for frontal or sagittal for marker sizing  and offset the minimum peak, 
     sizing =  10 # 10, 30
     print(avg_peak_array,'\n', pf_array ,'\n', ev_array )
     
+    # create color array that is a function of avg_peak_array and does not have 0 as a min
     color = []
     second_min = sorted(set(avg_peak_array))
     for x in avg_peak_array:
