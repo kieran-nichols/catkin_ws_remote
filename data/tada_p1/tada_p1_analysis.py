@@ -15,7 +15,7 @@ import math
 import pickle
 from plotly.colors import n_colors
 
-step = 1
+step = 2
 time_offset = 0
 
 # create array of 8 different colors from red to blue
@@ -25,8 +25,8 @@ colors = n_colors('rgb(0, 255, 255)', 'rgb(255, 0, 255)', 255, colortype = 'rgb'
 other_colors = n_colors('rgb(255, 0, 255)', 'rgb(0, 255, 255)', 255, colortype = 'rgb')
 
 # find all files with '.bag' in name
-#path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\tada_p1"
-path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\motor_test\test_may_22"
+path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\tada_p1"
+#path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\motor_test\test_may_22"
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
 #print(files)
 topics = ['motor_command','motor_listen']
@@ -36,6 +36,9 @@ figure1 = go.Figure()
 figure2 = go.Figure()
 figure3 = go.Figure()
 figure4 = go.Figure()
+figure5 = go.Figure()
+figure6 = go.Figure()
+figure7 = go.Figure()
 #figure2 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 #figure3 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 #figure_polar = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2], horizontal_spacing=0.075,)# subplot_titles=("Plantarflexor Moment", "Eversion Moment", "Resultant Moment")) 
@@ -70,19 +73,19 @@ def euler_from_quaternion(x, y, z, w):
      
         return roll_x, pitch_y, yaw_z # in radians
     
-def TADA_angle(M1,M2):
+def TADA_angle(M1,M2,theta):
     
     # convert motor cmd to angle in rad
-    q1 = (M1-0)/567*2*np.pi - 0*np.pi/2 # -141 was homed, 567 is counts per rev
-    q5 = (M2-2*567)/567*2*np.pi - 0*np.pi/2 # 1*np.pi/2 for expt1 # 0*np.pi/2 for expt2
+    q1 = (M1-374)/567*2*np.pi - 0*np.pi/2 # -141 was homed, 567 is counts per rev
+    q5 = (M2-382)/567*2*np.pi - 0*np.pi/2 # 1*np.pi/2 for expt1 # 0*np.pi/2 for expt2
     
     q2 = np.pi/36; q4 = q2
     R01 = np.array([[np.cos(q1), -np.sin(q1), 0], [np.sin(q1), np.cos(q1), 0], [0, 0, 1]])
     R12 = np.array([[np.cos(q2), 0 , np.sin(q2)], [0, 1, 0], [-np.sin(q2), 0, np.cos(q2)]])
     
     q3 = -q1 - q5;
-    #theta = theta_deg*math.pi/180
-    #beta = 5*math.pi/180
+    theta = theta*math.pi/180
+    beta = 5*math.pi/180
     #q3 = 2*np.real((np.arccos(np.sin(theta/2)/np.sin(beta))))
     
     R23 = np.array([[np.cos(q3), -np.sin(q3), 0], [np.sin(q3), np.cos(q3), 0], [0, 0, 1]])
@@ -96,6 +99,8 @@ def TADA_angle(M1,M2):
             
     PF = float(180/np.pi*math.atan2(R05[0,2],R05[2,2]))
     EV = float(180/np.pi*math.atan2(R05[1,2],R05[2,2]))
+    #PF = float(180/np.pi*R05[0,2])
+    #EV = float(180/np.pi*R05[1,2])
     return PF,EV,q1,q5
 
 # convert the rosbag to csv files that are based on topics
@@ -122,7 +127,7 @@ if step==0:
 elif step==1:
     print(path)
     # find folders in path
-    folder = path+'\\'+'P10I100S250Tor1000Vel2000\\'#+'data_attempt2\\' P10I100S250Tor1000Vel2000
+    folder = path+'\\attempt4\\'#+'data_attempt2\\' P10I100S250Tor1000Vel2000
     files = os.listdir(folder)
     files = files[0]
     print(files)
@@ -149,6 +154,12 @@ elif step==1:
         motor_cmd['m1_cmd'] = data.field_motor1_move/567
         motor_cmd['m2_cmd'] = data.field_motor2_move/567
         motor_cmd['PF_cmd'], motor_cmd['EV_cmd'] = data.field_PF_cmd, data.field_EV_cmd
+        # find norm of data.field_PF_cmd and data.field_EV_cmd
+        angle_norm = []
+        for i,x in enumerate(data.field_PF_cmd):
+            if round(x) == 0: x = data.field_EV_cmd[i]
+            angle_norm.append(abs(round(x,1)))
+        #print(angle_norm)
         motor_cmd['CPU0'], motor_cmd['CPU1'], motor_cmd['CPU2'], motor_cmd['CPU3'] = data.field_CPU0, data.field_CPU1, data.field_CPU2, data.field_CPU3
         motor_cmd_new['PF_cmd'], motor_cmd_new['EV_cmd'] = data.field_PF_cmd, data.field_EV_cmd
     
@@ -158,14 +169,20 @@ elif step==1:
         data1.columns = data1.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
         time_offset1 = 0#data1.shape[0]-1 # 0
         time1 = data1.field_t - data.field_t[0] - time_offset#(data1.time - 1*data.time[time_offset])/1_000_000_000 # there seems to be a consistent 1 or 2.4 sec delay depending on trial due when rosbag topics are started
-        motor_listen['curr_pos1'] = data1.field_curr_pos1/567
+        motor_listen['curr_pos1'] = data1.field_curr_pos1/567 
         motor_listen['curr_pos2'] = data1.field_curr_pos2/567
         motor_listen['t_off'] = data1.field_toff/1000
         ###i=0
+        # find the value of data1.field_t[0] in data1.field_t
+        for i,x in enumerate(time1):
+            if x == 0: 
+                shift_ind = i
+                break
+        print(shift_ind,"need to investigate")
         for i,x in enumerate(data1.field_curr_pos1):
             ##for y in data.field_motor2_move:
             ##i+=1
-            a,b,c,d = TADA_angle(x,data1.field_curr_pos2[i])
+            a,b,c,d = TADA_angle(x,data1.field_curr_pos2[i],angle_norm[i-shift_ind])
             motor_listen['curr_PF'].append(a) 
             motor_listen['curr_EV'].append(b)
             motor_listen_new['curr_PF'].append(a) 
@@ -175,21 +192,18 @@ elif step==1:
         #    ##print(i)
 
         ##data2 = pd.read_csv(folder+'EXPT2_reduced.csv')
-        #data2 = pd.read_csv(folder+'motive_data_quat.csv') # motive_data.csv
+        data2 = pd.read_csv(folder+'attempt4_motive.csv') # motive_data.csv
         ###print(data2)
 
-        #time2 = data2.Time - 3.2#-11.3#6.6
+        time2 = data2.Time - 7.85#-11.3#6.6
 
-        #for i,item in enumerate(data2.Time):
+        for i,item in enumerate(data2.Time):
         #    #x,y,z = data2.X[i], data2.Y[i], data2.Z[i]
-        #    x,y,z = euler_from_quaternion(data2.X[i], data2.Y[i], data2.Z[i], data2.W[i])
+            x,y,z = euler_from_quaternion(data2.X[i], data2.Y[i], data2.Z[i], data2.W[i])
         ##    #if i == 0:offset = -x/np.pi*180
-        #    motive['rot_X'].append(x/np.pi*180-5.7)#12.6)
-        #    motive['rot_Y'].append(y/np.pi*180+5.9)
-        #    motive['rot_Z'].append(z/np.pi*180-5.15)
-        #    #motive['rot_X'].append(x-5.7)#12.6)
-        #    #motive['rot_Y'].append(y)
-        #    #motive['rot_Z'].append(z-5.15)
+            motive['rot_X'].append(x/np.pi*180+1.91)
+            motive['rot_Y'].append(y/np.pi*180+0.32)
+            motive['rot_Z'].append(z/np.pi*180-6.61+1.7)
 
                 # specify the figure lines with time as x and motor cmd and listen as y
         figure.data = []
@@ -200,16 +214,16 @@ elif step==1:
         figure.add_trace(go.Scatter(x=time1, y=motor_listen['curr_pos2'], mode='lines', name='curr_pos of motor2'))
         figure.show()
 
-        #figure2.add_trace(go.Scatter(x=time2, y=motive['rot_X'], mode='lines', name='rot_X of motive')) 
-        #figure2.add_trace(go.Scatter(x=time2, y=motive['rot_Y'], mode='lines', name='rot_Y of motive'))
-        #figure2.add_trace(go.Scatter(x=time2, y=motive['rot_Z'], mode='lines', name='rot_Z of motive'))
+        figure2.add_trace(go.Scatter(x=time2, y=motive['rot_X'], mode='lines', name='rot_X of motive')) 
+        figure2.add_trace(go.Scatter(x=time2, y=motive['rot_Y'], mode='lines', name='rot_Y of motive'))
+        figure2.add_trace(go.Scatter(x=time2, y=motive['rot_Z'], mode='lines', name='rot_Z of motive'))
         figure2.add_trace(go.Scatter(x=time, y=motor_cmd['PF_cmd'], mode='lines', name='PF_cmd'))
         figure2.add_trace(go.Scatter(x=time, y=motor_cmd['EV_cmd'], mode='lines', name='EV_cmd'))
-        #figure2.add_trace(go.Scatter(x=time1, y=motor_listen['curr_PF'], mode='lines', name='curr_PF'))
-        #figure2.add_trace(go.Scatter(x=time1, y=motor_listen['curr_EV'], mode='lines', name='curr_EV'))
+        figure2.add_trace(go.Scatter(x=time1, y=motor_listen['curr_PF'], mode='lines', name='curr_PF'))
+        figure2.add_trace(go.Scatter(x=time1, y=motor_listen['curr_EV'], mode='lines', name='curr_EV'))
         # add title
         figure2.update_layout(title_text=f'{folder[:-1]}')
-        #figure2.show()
+        figure2.show()
         figure2 = go.Figure()
 
         figure1.add_trace(go.Scatter(x=time, y=motor_cmd['PF_cmd'], mode='lines', name='PF_cmd')) # adding markers slows down the rendering
@@ -218,7 +232,7 @@ elif step==1:
         #figure1.add_trace(go.Scatter(x=time1, y=motor_listen['q5'], mode='lines', name='q5'))
         figure1.add_trace(go.Scatter(x=time, y=motor_cmd['EV_cmd'], mode='lines', name='EV_cmd')) # adding markers slows down the rendering
         figure1.add_trace(go.Scatter(x=time1, y=motor_listen['curr_EV'], mode='lines', name='curr_EV'))
-        figure1.show()
+        #figure1.show()
 
         figure3.add_trace(go.Scatter(x=time, y=motor_cmd['CPU0'], mode='lines', name='CPU0')) # adding markers slows down the rendering
         figure3.add_trace(go.Scatter(x=time, y=motor_cmd['CPU1'], mode='lines', name='CPU1'))
@@ -231,14 +245,14 @@ elif step==1:
         figure4.add_trace(go.Scatter(x=time1, y=motor_listen['t_off'], mode='markers', name='timing_offset_markers in microsec'))
         #figure4.add_trace(go.Scatter(x=time1, y=motor_listen['t_off'], mode='lines', name='timing_offset_lines'))
         figure4.update_layout(title_text=f'{folder[:-1]}')
-        figure4.show()
+        #figure4.show()
         #figure4 = go.Figure()
         #exit()
 
         
         # create lists for all topics that creates regions of time based on trial selector where the cmds are not 0
-        all_metrics = [motor_cmd, motor_listen]#, motive], motor_listen
-        all_time = [time, time1]#, time2]
+        all_metrics = [motor_cmd, motor_listen, motive] #motor_listen
+        all_time = [time, time1, time2]
         topic_individual_dict = []
         region = []
         regions = []
@@ -323,8 +337,8 @@ elif step==2:
     steady_info_val = []
     steady_info_displacement = []
     #files = files[1]
-    print(files)
-    folder = path+'\\'+'P10I100S250Tor1500Vel5000\\'#+'data_attempt2\\'    #chosen_topic_array = ['PF_cmd', 'EV_cmd', 'curr_PF', 'curr_EV']
+    #print(files)
+    folder = path+'\\attempt4\\'#+'data_attempt2\\'    #chosen_topic_array = ['PF_cmd', 'EV_cmd', 'curr_PF', 'curr_EV']
     # Open pickle file for region data
     
     #for file in files[1]:
@@ -347,20 +361,34 @@ elif step==2:
     steady_info_time = [[],[]]
     steady_info_val = [[],[]]
     steady_info_displacement = [[],[]]
+    counter = [0, 0]
+    angle_control_array = [[],[]]
+    angle_actual_array = [[],[]]
+    angle_motive_array = [[],[]]
             
     for x, region in enumerate(regions):
             
         # region[0] refers to cmds and [1] refers to listen
         metric_cmd = region[0]['PF_cmd']
         PF_command = metric_cmd[2] # 0 is PF for metric[0]
+        metric_cmd_ev = region[0]['EV_cmd']
+        EV_command = metric_cmd_ev[2] # 0 is PF for metric[0]
         time_list = [z for z in metric_cmd[1]]# need to split up panda
         name_ind = metric_cmd[0].find('PF =')
-        name = metric_cmd[0][name_ind:]   
+        name = metric_cmd[0][name_ind:]  
+        pf = float(name[name.find('PF =')+4:name.find(',')])
+        ev = float(name[name.find('EV = ')+4:])
             
         metric_actual = region[1]['curr_PF']
-        PF_actual = metric_actual[2] # 0 is PF for metric[0]             
-        #metric_motive = region[1]['rot_Z']
-        #PF_motive = metric_motive[2] # 0 is PF for metric[0]  
+        PF_actual = metric_actual[2] # 0 is PF for metric[0]
+        metric_actual_ev = region[1]['curr_EV']
+        EV_actual = metric_actual_ev[2] # 0 is PF for metric[0]
+        
+        metric_motive = region[2]['rot_Z']
+        PF_motive = metric_motive[2] # 0 is PF for metric[0] 
+        metric_motive_ev = region[2]['rot_X']
+        EV_motive = metric_motive_ev[2] # 0 is PF for metric[0] 
+        time_motive = [z for z in metric_motive[1]]# need to split up panda
             
         metric_CPU0 = region[0]['CPU0']
         metric_CPU1 = region[0]['CPU1']
@@ -371,14 +399,17 @@ elif step==2:
         CPU2 = metric_CPU2[2] 
         CPU3 = metric_CPU3[2] 
             
-        #metric_toff = region[1]['t_off']
-        #toff = metric_toff[2]            
+        metric_toff = region[1]['t_off']
+        toff = metric_toff[2]            
             
         # use list comprehension to find the difference of each item of two lists: values_list[1] and values_list[0] and create a new list
         #print(len(time_list), len(PF_command), len(PF_actual))
-        min_list_length = min(100, len(time_list), len(PF_command), len(PF_actual)) # PF_actual ensure resulting list is as long as the min length of each list or 100 (1 sec)
+        min_list_length = min(100, len(time_list), len(PF_command), len(PF_actual), len(PF_motive)) # PF_actual ensure resulting list is as long as the min length of each list or 100 (1 sec)
         diff = [PF_command[i] - PF_actual[i] for i in range(min_list_length)] #change diff to something elsecd ca
-        #diff_motive = [PF_command[i] - PF_motive[i] for i in range(min_list_length)]
+        diff_motive = [PF_command[i] - PF_motive[i] for i in range(min_list_length)]
+        angle_cmd = [[PF_command[i], EV_command[i]] for i in range(min_list_length)]
+        angle_actual = [[PF_actual[i], EV_actual[i]] for i in range(min_list_length)]
+        angle_motive = [[PF_motive[i], EV_motive[i]] for i in range(min_list_length)]
 
         i = 0
         # find movement time by searching for a change of value starting at the end of the diff arrays
@@ -386,57 +417,85 @@ elif step==2:
         steady_time = [0,0]
         steady_val = [0,0]
         dist_trav = [0,0]
-        first = 0
+        first = 0  
+        difference_array = [[],[]]
+
             
         # For hall sensors and motive
-        movements = [diff]#,diff]#, diff_motive]
+        movements = [diff, diff_motive]
         for i, movement in enumerate(movements):
             prev_val = 0
-            #first = 0
-            for val, t in zip(movement[offset:], time_list[offset:min_list_length]):
+            first = 0
+            #if i==1: min_list_length = 50; else: pass
+            indexes = list(range(offset,len(time_list[offset:min_list_length])-1))
+            
+            for j, val, t in zip(indexes,movement[offset:], time_list[offset:min_list_length]):
                 #approx_val = round(val, 2)
                 approx_val = val
                 difference = abs(approx_val - prev_val)
+                difference_array[i].append(difference)
+                prev_val = approx_val
                 # find start time when approx val changes value and end time when it stops being equal to approx_val
-                if abs(approx_val) < 0.25 and difference < 0.25: # change in error in degrees
+                # mean of last 5 items of steady_info_val should be less than 0.25
+                if np.nanmean(difference_array[i][-10:])<0.1:# and abs(val) < 1.5: #difference < 0.25: # change in error in degrees
+                    #if abs(approx_val) < 0.25:
                     steady_time[i] = [t]
                     steady_val[i] = [val]
                     dist_trav[i] = [abs(movement[0])]
                     steady_info_time[i].append(t)
                     steady_info_val[i].append(abs(val)) 
                     steady_info_displacement[i].append(dist_trav[i])
+                    
+                    if i==0:
+                        pf_control, ev_control = angle_cmd[j]
+                        angle_control_array.append([pf_control, ev_control])
+                        pf_actual, ev_actual = angle_actual[j]
+                        angle_actual_array.append([pf_actual, ev_actual])
+                    else:
+                        pf_motive, ev_motive = angle_motive[j]
+                        angle_motive_array.append([pf_motive, ev_motive])
+
+                    
                     #print(steady_val[i])
+                    if abs(val) > 1.5:  counter[i] += 1 
                     break
                         
                 # need to complete
-                elif abs(approx_val) > 0.25 and difference < 0.01 and first==0:
-                    steady_time[i] = [t]
-                    steady_val[i] = [val]
-                    dist_trav[i] = [abs(movement[0])]
-                    steady_t = t
-                    stedy_value = abs(val)
-                    steady_disp = dist_trav[i]
-                    first = 1
+                    #elif abs(approx_val) > 0.25 and np.nanmean(difference_array[i][-10:])<0.1: # abs(approx_val) > 0.25:# and first==0: # abs(approx_val) > 2
+                    #    steady_time[i] = [t]
+                    #    steady_val[i] = [val]
+                    #    dist_trav[i] = [abs(movement[0])]
+                    #    #steady_t = t
+                    #    #stedy_value = abs(val)
+                    #    #steady_disp = dist_trav[i]
+                    #    steady_info_time[i].append(t)
+                    #    steady_info_val[i].append(abs(val)) 
+                    #    steady_info_displacement[i].append(dist_trav[i])
+                    #    #first = 1
+                    #    break
                         
                 # t is equal to last item of time_list
-                elif t==time_list[min_list_length-1]:
+                elif t==time_list[min_list_length-1]:# and False:                  
                     steady_time[i] = [t]
                     steady_val[i] = [val]
                     dist_trav[i] = [abs(movement[0])]
-                            
-                    if first!=0:
-                        steady_info_time[i].append(steady_t)
-                        steady_info_val[i].append(stedy_value) 
-                        steady_info_displacement[i].append(steady_disp)
-                    else:
-                        steady_info_time[i].append(t)
-                        steady_info_val[i].append(abs(val)) 
-                        steady_info_displacement[i].append(dist_trav[i])
-                        first = 0
+                    counter[i] += 1     
+                    #if first!=0:
+                    #steady_info_time[i].append(steady_t)
+                    #steady_info_val[i].append(stedy_value) 
+                    #steady_info_displacement[i].append(steady_disp)
+                    #counter[i] += 1
+                    #else:
+                    steady_info_time[i].append(t)
+                    steady_info_val[i].append(abs(val)) 
+                    steady_info_displacement[i].append(dist_trav[i])
+                    #    #counter += 1
+                    #    first = 0
                     #print(steady_val[i])
                     break
+                
                 else: pass
-                prev_val = approx_val
+                
                 #i+=1
         #print(steady_time, steady_val)
         #print(diff)
@@ -447,23 +506,68 @@ elif step==2:
         try:
             figure2.add_trace(go.Scatter(x=time_list,y=movements[0], mode='lines', name=name, legendgroup=name))#, marker_color=color)) # name, 'hall_sensors'
             figure2.add_trace(go.Scatter(x=steady_time[0],y=steady_val[0], mode='markers', name=name, legendgroup=name))#, marker_color=other_color)) # name, 'hall_sensors'
-                    
+            figure5.add_trace(go.Scatter(x=time_list,y=movements[1], mode='lines', name=name, legendgroup=name))#, marker_color=color)) # name, 'hall_sensors'
+            figure5.add_trace(go.Scatter(x=steady_time[1],y=steady_val[1], mode='markers', name=name, legendgroup=name))#, marker_color=other_color)) # name, 'hall_sensors'
+            
+            figure6.add_trace(go.Scatter(x=[ev_control], y=[pf_control], mode='markers', marker_color='Red')) 
+            figure6.add_trace(go.Scatter(x=[ev_actual], y=[pf_actual], mode='markers', marker_color='Blue'))
+            figure6.add_trace(go.Scatter(x=[ev_motive], y=[pf_motive], mode='markers', marker_color='Purple'))
         except: pass
         #figure4.add_trace(go.Scatter(x=steady_time,y=dist_trav, mode='markers', name=name, legendgroup=name, marker_color=color)) # name, 'hall_sensors'
         #figure3.add_trace(go.Scatter(x=time_list,y=diff_motive, mode='lines', name=name, legendgroup=name, marker_color=color)) # 'motive'
             #something in the below line is causing the error due to the length of the arrays or some error in the detector
         #figure3.add_trace(go.Scatter(x=steady_time[1],y=steady_val[1], mode='lines', name=name, legendgroup=name, marker_color=other_color)) # 'motive'
         #break
+        
     figure2.show()  
-    figure2 = go.Figure()
-    #figure3.show() 
-    #figure4.show()
+    figure5.show()
+    figure6.show()
+    
+    angle_dict = {}
+    # create for loop for unique values of angle_control_array
+    # create dict storage where key is angle_control_array and value is angle_actual_array and angle_motive_array
+    #print(angle_control_array)
+    for x,y,z in zip(angle_control_array, angle_actual_array, angle_motive_array):
+        if x != [] and y != [] and z != []:
+            #print(x,y,z)
+            x_label = f'{x}'
+            if x_label not in angle_dict:
+                angle_dict[x_label] = [x,y,z]
+                #print(angle_dict)#; exit()
+                #print(angle_dict[x_label][2])
+            else:     
+                angle_dict[x_label][0] = angle_dict[x_label][0]+x
+                angle_dict[x_label][1] = angle_dict[x_label][1]+y
+                angle_dict[x_label][2] = angle_dict[x_label][2]+z
+                #print(angle_dict); exit()
+    
+    #print(angle_dict)
+    # find averages of the values of angle_dict for each key
+    for key in angle_dict:
+        #print(key)
+        #print(angle_dict[key][0])
+        command = [np.mean(angle_dict[key][0][0]),np.mean(angle_dict[key][0][1])]
+        actual = [np.mean(angle_dict[key][1][0]),np.mean(angle_dict[key][1][1])]
+        motive = [np.mean(angle_dict[key][2][0]),np.mean(angle_dict[key][2][1])]
+        print(command,actual,motive)
+        figure7.add_trace(go.Scatter(x=[command[0]], y=[command[1]], mode='markers', marker_color='Red'))
+        figure7.add_trace(go.Scatter(x=[actual[0]], y=[actual[1]], mode='markers', marker_color='Blue'))
+        figure7.add_trace(go.Scatter(x=[motive[0]], y=[motive[1]], mode='markers', marker_color='Purple'))
+    
+    figure7.show()
+        
+    
+    #figure2 = go.Figure()
+    #figure3.show()     
     #print(steady_info_time); #break
     print("Average and sd times to steady state:", np.mean(steady_info_time[0]),',', np.std(steady_info_time[0]), "seconds")
-    print("Average absolute error and its sd for steady state:", np.mean(steady_info_val[0]),',', np.std(steady_info_val[0]), "degrees")
+    print("Average absolute error and its sd for steady state:", np.mean(steady_info_val[0]),',', np.std(steady_info_val[0]), "degrees\n")
+    print("Average and sd times to steady state:", np.mean(steady_info_time[1]),',', np.std(steady_info_time[1]), "seconds")
+    print("Average absolute error and its sd for steady state:", np.mean(steady_info_val[1]),',', np.std(steady_info_val[1]), "degrees")
+    print("Stuck movment number: ", counter,"\n")
     print("Averages and sd for CPU0:", [np.mean(CPU0), np.std(CPU0)], "CPU1:", [np.mean(CPU1), np.std(CPU1)], "CPU2:", [np.mean(CPU2), np.std(CPU2)], "CPU3:", [np.mean(CPU3), np.std(CPU3)])
     print("Average CPU load:", np.mean([CPU0, CPU1, CPU2, CPU3]), "CPU_sd:", np.std([CPU0, CPU1, CPU2, CPU3]))
-    #print("Average toff:", np.mean(toff), "toff_sd:", np.std(toff))
+    print("Average toff:", np.mean(toff), "toff_sd:", np.std(toff))
     #exit() 
         #                    
 

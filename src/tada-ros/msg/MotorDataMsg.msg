@@ -6,6 +6,8 @@ int32 motor1_torque
 int32 motor2_torque
 float32 PF_cmd
 float32 EV_cmd
+float32 theta_cmd
+float32 alpha_cmd
 float32 PF_curr
 float32 EV_curr
 float32 CPU0
