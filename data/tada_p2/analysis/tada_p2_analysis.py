@@ -7,14 +7,20 @@ import numpy as np
 import plotly.graph_objs as go
 from plotly.colors import sequential, n_colors
 from scipy.signal import find_peaks
+from scipy import integrate
 import time
 from plotly.subplots import make_subplots
 import types
 import pickle
 import warnings
 import math
-colors = n_colors('rgb(0, 255, 255)', 'rgb(0, 0, 255)', 255, colortype = 'rgb')
+#import matplotlib.pyplot as plt
+#from scipy.signal import butter, lfilter, freqz
+#from scipy.signal import find_peaks
+from scipy import signal
 
+colors = n_colors('rgb(0, 255, 255)', 'rgb(0, 0, 255)', 255, colortype = 'rgb')
+color_rgb = ['Red', 'Green', 'Blue']
 
 def TADA_angle(M1,M2):
     
@@ -54,10 +60,14 @@ figure = go.Figure()
 figure1 = go.Figure()
 figure2 = go.Figure()
 figure3 = go.Figure()
-figure4 = go.Figure()
-#figure2 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
+figure4 = make_subplots(rows=1, cols=2, shared_xaxes=True, vertical_spacing=0.15, horizontal_spacing=.1) 
+figure5 = go.Figure()
+figure6 = go.Figure()
+figure7 = go.Figure()
+figure8 = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.15, horizontal_spacing=0.009)   
 #figure3 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 figure_polar = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2], horizontal_spacing=0.075,)# subplot_titles=("Plantarflexor Moment", "Eversion Moment", "Resultant Moment")) 
+figure_polar1 = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2], horizontal_spacing=0.075,)
 
 color_dict = dict(zip(['slow', 'med', 'fast'], colors))
 moments = {'mx':[], 'my':[], 'fz':[]}
@@ -68,41 +78,55 @@ xsens_joint_angle = {'hip_sag':[], 'knee_sag':[], 'ankle_sag':[]}
 xsens_com = {'com_pos_x':[], 'com_pos_y':[], 'com_pos_z':[]}
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
 
-step = 3
+#step = 5
+# ask user for input
+step = int(input("Enter step number: "))
 
 # convert the rosbag to csv files that are based on topics
 if step==0:
-        ## loop through files
-    for file in files:
-        # create folder using subprocess
-        reduced_file_name = file[:-4]
-        print(reduced_file_name)        
-        subprocess.run('mkdir {}'.format(path+'\\'+reduced_file_name), capture_output=True, text=True, shell=True)
-        # loop through each topic
-        for topic in topics:
-            print("rostopic echo -b {} -p /{} > {}\{}.csv".format(path+'\\'+file,topic,path+'\\'+reduced_file_name,topic))
-            subprocess.run('rostopic echo -b {} -p /{} > {}\{}.csv'.format(path+'\\'+file,topic,path+'\\'+reduced_file_name,topic), capture_output=True, text=True, shell=True)
+    #    ## loop through files
+    #for file in files:
+    #    # create folder using subprocess
+    #    reduced_file_name = file[:-4]
+    #    print(reduced_file_name)        
+    #    subprocess.run('mkdir {}'.format(path+'\\'+reduced_file_name), capture_output=True, text=True, shell=True)
+    #    # loop through each topic
+    #    for topic in topics:
+    #        print("rostopic echo -b {} -p /{} > {}\{}.csv".format(path+'\\'+file,topic,path+'\\'+reduced_file_name,topic))
+    #        subprocess.run('rostopic echo -b {} -p /{} > {}\{}.csv'.format(path+'\\'+file,topic,path+'\\'+reduced_file_name,topic), capture_output=True, text=True, shell=True)
 
-    #all_filenames = ['\\subj1_med','\\subj1_med_3.5_n135','\\subj1_med_after']
-    #comb_name = 'subj1_med_comb'
-    #subprocess.run('mkdir {}'.format(path+'\\'+comb_name), capture_output=True, text=True, shell=True)
-    #for topic in topics:
-    #    #combine all files for a topic
-    #    #print(path+'\\subj1_med'+'\\'+topic+'.csv')
-    #    combined_csv = pd.concat([pd.read_csv(path+f+'\\'+topic+'.csv') for f in all_filenames])
-    #    #export to csv
-    #    combined_csv.to_csv( path+f'\{comb_name}\{topic}.csv', index=False, encoding='utf-8-sig')
+    all_filenames = ['\\subj1_med','\\subj1_med_after','\\subj1_med_3.5_n135']
+    comb_name = 'subj1_med_comb'
+    subprocess.run('mkdir {}'.format(path+'\\'+comb_name), capture_output=True, text=True, shell=True)
+    for topic in topics:
+        #combine all files for a topic
+        #print(path+'\\subj1_med'+'\\'+topic+'.csv')
+        combined_csv = pd.concat([pd.read_csv(path+f+'\\'+topic+'.csv') for f in all_filenames])
+        #export to csv
+        combined_csv.to_csv( path+f'\{comb_name}\{topic}.csv', index=False, encoding='utf-8-sig')
    
 # read all csv files, store them in dictionaries, find the regions of time where TADA angle is non-neutral, and plot the topics for each TADA angle
 elif step==1: 
     ########################################
     #topics = [moments, imu_data, motor_command, xsens_joint_angle, xsens_com, linear_moments]
-    folder_name = path+'\\'+'subj1_slow\\'
+    folder_name = path+'\\'+'subj1_med_comb\\' #subj1_med_comb
+
+    # Read motor cmd data from csv
+    data2 = pd.read_csv(folder_name+'motor_command.csv')
+    data2.columns = data2.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
+    time2 = data2.field_t - data2.field_t[0]
+    #motor_command['m1_cmd'] = data2.field_motor1_move/567*360
+    #motor_command['m2_cmd'] = data2.field_motor2_move/567*360
+    motor_command['PF_cmd'], motor_command['EV_cmd'] = data2.field_PF_cmd, data2.field_EV_cmd
+    motor_command['valid'] = data2.field_valid
+    #print(motor_command['PF_cmd'])
+    #motor_command['CPU0'], motor_command['CPU1'], motor_command['CPU2'], motor_command['CPU3'] = data2.field_CPU0, data2.field_CPU1, data2.field_CPU2, data2.field_CPU3  
+    
     # Read europa data
     data = pd.read_csv(folder_name+'europa_topic.csv')
     data.columns = data.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
     #print(data)
-    time = data.field_t - data.field_t[0] 
+    time = data.field_t - data2.field_t[0] - 2
     #print(data.field_t[0])
     moments['mx'] = data.field_mx
     moments['my'] = data.field_my
@@ -111,26 +135,16 @@ elif step==1:
     # read imu data
     data1 = pd.read_csv(folder_name+'sensing_topic.csv')
     data1.columns = data1.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
-    time1 = data1.field_t - data.field_t[0]
+    time1 = data1.field_t - data2.field_t[0]
     #print(data1)
     imu_data['gyro_z'] = data1.field_gyro_z
-    imu_data['state'] = data1.field_state
-        
-    # Read motor cmd data from csv
-    data2 = pd.read_csv(folder_name+'motor_command.csv')
-    data2.columns = data2.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
-    time2 = data2.field_t - data.field_t[0]
-    #motor_command['m1_cmd'] = data2.field_motor1_move/567*360
-    #motor_command['m2_cmd'] = data2.field_motor2_move/567*360
-    motor_command['PF_cmd'], motor_command['EV_cmd'] = data2.field_PF_cmd, data2.field_EV_cmd
-    motor_command['valid'] = data2.field_valid
-    #print(motor_command['PF_cmd'])
-    #motor_command['CPU0'], motor_command['CPU1'], motor_command['CPU2'], motor_command['CPU3'] = data2.field_CPU0, data2.field_CPU1, data2.field_CPU2, data2.field_CPU3  
+    imu_data['state'] = data1.field_state       
+ 
         
     ## Read xsens joint angle data from csv # taking the time offset from windows data since the offset is different to linux topics
     data3 = pd.read_csv(folder_name+'xsens_joint_angle.csv')
     data3.columns = data3.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
-    time3 = data3.field_data0 - data.field_t[0] #data3.field_data0[0]# + 28302.41254 # - data.field_t[0]
+    time3 = data3.field_data0 - data2.field_t[0] #data3.field_data0[0]# + 28302.41254 # - data.field_t[0]
     #print(data3.field_data0[0])
     xsens_joint_angle['hip_frontal_right'] = data3.field_data3
     xsens_joint_angle['knee_frontal_right'] = data3.field_data8
@@ -142,15 +156,18 @@ elif step==1:
     ## Read xsens com data from csv # taking the time offset from windows data since the offset is different to linux topics
     data4 = pd.read_csv(folder_name+'xsens_com.csv')
     data4.columns = data4.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
-    time4 = data4.field_data0 - data.field_t[0] #data4.field_data0[0]#+ 28302.41254
+    time4 = data4.field_data0 - data2.field_t[0] #data4.field_data0[0]#+ 28302.41254
     xsens_com['com_pos_x'] = data4.field_data1
     xsens_com['com_pos_y'] = data4.field_data2
     xsens_com['com_pos_z'] = data4.field_data3
+    xsens_com['com_vel_x'] = data4.field_data4
+    xsens_com['com_vel_y'] = data4.field_data5
+    xsens_com['com_vel_z'] = data4.field_data6
         
     ## Read linear moments data from csv # taking the time offset from windows data since the offset is different to linux topics
     data5 = pd.read_csv(folder_name+'linear_moments.csv')
     data5.columns = data5.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
-    time5 = data5.field_data0 - data.field_t[0] #data5.field_data0[0] + 28302.41254
+    time5 = data5.field_data0 - data2.field_t[0] #data5.field_data0[0] + 28302.41254
     linear_moments['foot_vert_vel'] = data5.field_data16   
     
             ## Show entire time series for data of interest; Plot entire experiment
@@ -160,7 +177,7 @@ elif step==1:
     figure.add_trace(go.Scatter(x=time, y=moments['fz'], mode='lines', name='Fz'))
 
     figure.add_trace(go.Scatter(x=time1, y=imu_data['gyro_z'], mode='lines', name='gyro_z'))
-    figure.add_trace(go.Scatter(x=time1, y=imu_data['state'], mode='lines', name='state'))
+    figure.add_trace(go.Scatter(x=time1, y=imu_data['state']*1000, mode='lines', name='state'))
 
     #figure.add_trace(go.Scatter(x=time2, y=motor_command['m1_cmd'], mode='lines', name='motor1_cmd (deg)')) # adding markers slows down the rendering
     #figure.add_trace(go.Scatter(x=time2, y=motor_command['m2_cmd'], mode='lines', name='motor2_cmd (deg)')) 
@@ -185,14 +202,14 @@ elif step==1:
     #figure.add_trace(go.Scatter(x=time5, y=linear_moments['foot_vert_vel'], mode='lines', name='foot_vert_vel'))
 
     figure.update_layout(title='All data', xaxis_title='Time (s)', yaxis_title='Value')
-    figure.show(); #exit()
+    figure.show(); exit()
         
     ########################################
     # TADA_angle finder (10 steps); in this dataset, the TADA angle changes, the persons walks about 10 steps, then the TADA angles changes back to 0,0
 
     # create lists for all topics that creates regions of time based on trial selector where the cmds are not 0
-    all_metrics = [moments, imu_data, motor_command]#, xsens_joint_angle, xsens_com, linear_moments] # there seems to be some issues with time of linear_moments
-    all_time = [time, time1, time2]#, time3, time4, time5]
+    all_metrics = [moments, imu_data, motor_command, xsens_joint_angle, xsens_com, linear_moments] # there seems to be some issues with time of linear_moments
+    all_time = [time, time1, time2, time3, time4, time5]
     topic_individual_dict = {}
     region = []
     regions = []
@@ -214,13 +231,14 @@ elif step==1:
         # find start time when approx val changes value and end time when it stops being equal to approx_val
         #if approx_val>0.1 or approx_val < -0.1 
         if  diff_pf > 0.1 or diff_ev > 0.1: 
-            start_time = time[i]
+            start_time = time2[i]
             start_info['start_time'].append(start_time)
             start_info['start_index'].append(i)
             start_info['PF'].append(approx_val[0])
             start_info['EV'].append(approx_val[1])
         prev_val = approx_val
-    #print(start_info)
+    print(start_info)
+    #exit()
 
     # loop through all start times in start_info minus 1
     for i, start_time in enumerate(start_info['start_time']):
@@ -238,6 +256,7 @@ elif step==1:
                 start_index = start_info['start_index'][i]
                 end_index = start_info['start_index'][i+1]
                 list_of_values = []
+                list_of_time = []
                 last_time = [0,0]
                 #print(topic[0])
                 # find the region that is within the start and end time
@@ -247,18 +266,24 @@ elif step==1:
                     #if q >= start_index and q <= end_index:
                     #try: # decided to ignore some errors from the below line
                     topic_time = all_time[j][q]
-                    if topic_time >= start_time and topic_time <= end_time and motor_command['valid'][q]:
+                    if topic_time >= start_time and topic_time <= end_time:# and motor_command['valid'][q]:
                         list_of_values.append(q_val)
-                        last_time = [q, topic_time]
+                        list_of_time.append(topic_time-start_time)
+                #        last_time = [q, topic_time]
                         
-                    # conditional statement if the end time is not valid then create an end time that is valid; valid means the experiment is not paused
-                    if last_time[1] < end_time: end_index = last_time[0]
-                    #except: pass
-                #list_of_time = all_time[j][start_index:end_index] #- all_time[j][start_index]
-                try: # some errors seem to pop up with this time calculation
-                    list_of_time = all_time[j][start_index:end_index] - all_time[j][start_index] # set all chunks to have an initial time of 0
-                except:
-                    list_of_time = []
+                #    # conditional statement if the end time is not valid then create an end time that is valid; valid means the experiment is not paused
+                #    if last_time[1] < end_time: 
+                #        end_index = last_time[0]
+                #        start_index = start_info['start_index'][i]
+                #    #except: pass
+                ##list_of_time = all_time[j][start_index:end_index] #- all_time[j][start_index]
+                #print(start_index,end_index,len(all_time[j]))
+                #try: # some errors seem to pop up with this time calculation
+                #    list_of_time = all_time[j][start_index:end_index] - all_time[j][start_index] # set all chunks to have an initial time of 0
+                #except:
+                #    list_of_time = []
+                #    list_of_values = []
+                #    print("issue")
                 #print(list_of_values)
                 legend_label = f'{topic[0]}' # ''
                 metric_label = f'{topic[0]}, {angle_title}'
@@ -291,7 +316,7 @@ elif step==1:
 elif step==2:
     # OR Sofya, you can instead process the peak finder here (focus on pylon moment, ang vel of shank, CM forward vel, foot segment pos and vel, hip/knee/ankle angles)
     # Add the peaks of the chosen to topic_individual_peaks_dict
-    folder_name = path+'\\'+'subj1_fast\\'
+    folder_name = path+'\\'+'subj1_med_comb\\'
     
     
     # Open pickle file for region data
@@ -304,6 +329,291 @@ elif step==2:
     name_array = []
     avg_peak_neutral = []
     direction_array = []
+    index = 0
+    index_array = []
+    pf_ev_array = []
+    pf_array_med = []
+    ev_array_med = []
+    angle_color = []
+    chosen_moment_stance = []
+    impulse_array = []
+    impulse_neutral = []
+    chosen_moment_stance_integral = []
+    
+    # Create break up regions into regions, a region is for a chunck of time
+    for x, region in enumerate(regions):
+        #print(region[2])
+        brain_cmd = region[2]['PF_cmd']
+        PF_command = brain_cmd[2] # 0 is PF for metric[0]
+        time_cmd = [z for z in brain_cmd[1]]
+        valid_cmd = region[2]['valid'][2]
+            
+        imu = region[1]['gyro_z'] # 1 is IMU
+        imu_gyro = imu[2]
+        time_imu = [z for z in imu[1]]# need to split up panda
+            
+        moments = region[0]
+        my = moments['my'][2]
+        mx = moments['mx'][2]
+        fz = moments['fz'][2]
+        
+        chosen_moment = my
+        
+        if chosen_moment == mx: 
+            chosen_moment_label = 'Frontal Moment'
+            time_m = [z for z in moments['mx'][1]]
+            sizing =  5 # 10, 30
+            height = 200
+        elif chosen_moment == my: 
+            chosen_moment_label = 'Sagittal Moment'
+            time_m = [z for z in moments['my'][1]]
+            sizing =  10 # 10, 30
+            height = 700
+        elif chosen_moment == fz: chosen_moment_label = 'Axial Force'
+
+        # low pass filter for chosen moment
+        sos = signal.butter(2, 6, 'lp', fs=100, output='sos')
+        filtered = signal.sosfilt(sos, chosen_moment)
+        
+        chosen_moment = []
+        chosen_moment = [z for z in filtered]
+        
+        name_ind = brain_cmd[0].find('PF =')
+        name = brain_cmd[0][name_ind:]   
+        print(name)
+        
+        #if name in ['PF = 10.0, EV = 0.0', 'PF = 0.0, EV = 10.0', 'PF = -10.0, EV = 0.0', 'PF = 0.0, EV = -10.0']:
+        #print(my); print(time_my); break
+        
+        all_peaks, _ = find_peaks(chosen_moment, height=height, distance=50)
+        print(all_peaks)
+        #print(len(all_peaks))
+        # pick the middle three peaks peaks if there are more than 2 peaks
+        if len(all_peaks) > 2:
+            peaks = all_peaks[len(all_peaks) // 2 - 1: len(all_peaks) // 2 + 2]
+        #elif all_peaks == None or math.isnan(all_peaks): peaks = [0]
+        else: peaks = all_peaks
+        #peaks = all_peaks[0:1+min(2,len(all_peaks))]
+        #peaks = all_peaks
+        print(peaks)
+        print(len(time_m))
+        peaks_time = [time_m[z] for z in peaks]
+        peaks_array = [chosen_moment[z] for z in peaks]
+
+        if len(peaks) > 2:
+                first_ind = peaks[0] - 50
+                if first_ind < 0: first_ind=0
+                second_ind = peaks[1] + 50
+                last_ind = peaks[len(peaks)-1] + 50
+                print(first_ind, second_ind, last_ind)
+                print(len(chosen_moment), len(time_m))
+                #print(chosen_moment,time_m[first_ind:last_ind]); exit()
+                #try:
+                chosen_moment_stance_integral = integrate.cumtrapz(chosen_moment[first_ind:last_ind], time_m[first_ind:last_ind], initial=0)
+                #print(chosen_moment_stance_integral); exit()
+                #except: chosen_moment_stance_integral = [0]
+                chosen_moment_stance_integral_val = chosen_moment_stance_integral[len(chosen_moment_stance_integral)-1]/len(peaks)
+        else: chosen_moment_stance_int = 0
+        
+        # ignore warnings for nanmean
+        #with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        try:
+            avg_peak = np.nanmean(peaks_array)
+        except: 
+            avg_peak = 0
+        #print(avg_peak)
+        if math.isnan(avg_peak): avg_peak = 0
+        elif avg_peak == float('nan'): avg_peak = 0
+        #print(avg_peak)
+            
+        
+        name_array.append(name)
+        pf = float(name[name.find('PF =')+4:name.find(',')])
+        ev = float(name[name.find('EV = ')+4:])
+        #print(pf, ev)
+            
+        #print(time_cmd)
+        #print(PF_command)
+        #print(time_imu)
+        #print(imu_gyro)
+        chosen_angles = ['PF = 5.0, EV = 0.0', 'PF = -0.0, EV = 5.0', 'PF = -5.0, EV = 0.0', 'PF = 0.0, EV = -5.0','PF = 10.0, EV = 0.0', 'PF = 0.0, EV = 10.0', 'PF = -10.0, EV = 0.0', 'PF = 0.0, EV = -10.0']
+        chosen_angles_10 = ['PF = 10.0, EV = 0.0', 'PF = 0.0, EV = 10.0', 'PF = -10.0, EV = 0.0', 'PF = 0.0, EV = -10.0']
+            
+        # sample graph to check variables
+        #figure3.add_trace(go.Scatter(x=time_imu,y=imu_gyro, mode='lines', name=name))
+        if name != 'PF = 0.0, EV = 0.0': # name in chosen_angles:
+            #figure3.add_trace(go.Scatter(x=time_my, y=my, mode='lines', name=name))
+            figure3.add_trace(go.Scatter(x=time_m, y=chosen_moment, mode='lines', name=name, legendgroup=name))
+            #print([mx[z] for z in peaks])
+            figure3.add_trace(go.Scatter(x=peaks_time, y=peaks_array, mode='markers', name=name, legendgroup=name)) 
+            index+=1
+            index_array.append(index)            
+                
+            # create scatter plot that has x be ev, y be pf, and marker color be avg_peak
+            #avg_peak = 0.1
+            #figure4.add_trace(go.Scatter(x=[ev], y=[pf], mode='markers', marker=dict(size=abs(0.1*int(avg_peak)), color=abs(0.1*int(avg_peak)), colorscale='Viridis', showscale=True), name=name))
+            if (ev,pf) not in zip(ev_array,pf_array):
+                pf_array.append(pf)
+                ev_array.append(ev)
+                pf_ev_array.append([ev,pf])
+                avg_peak_array.append(int(avg_peak))
+                impulse_array.append(int(chosen_moment_stance_integral_val)) 
+                
+                # cartesian to polar
+                #r = math.sqrt(pf**2 + ev**2)
+                theta = math.atan2(pf,ev)
+                direction = 180/np.pi*theta
+                direction_array.append(direction)
+                if name in chosen_angles_10: angle_color.append('red')
+                else: angle_color.append('blue')
+            else:
+                ind = pf_ev_array.index([ev,pf]) 
+                #print(ind,[ev,pf],pf_ev_array)
+                avg_peak_array[ind] = (avg_peak_array[ind] + int(avg_peak))/2
+                impulse_array[ind] = (impulse_array[ind] + int(chosen_moment_stance_integral_val))/2
+        
+        elif name == 'PF = 0.0, EV = 0.0' and len(all_peaks)<6:# and valid_cmd: # neutral walking trials with around 10 steps
+            #print(valid_cmd)
+            figure3.add_trace(go.Scatter(x=time_m, y=chosen_moment, mode='lines', name=name, legendgroup=name))
+            figure3.add_trace(go.Scatter(x=peaks_time, y=peaks_array, mode='markers', name=name, legendgroup=name))
+                
+            # create scatter plot that has x be ev, y be pf, and marker color be avg_peak
+            avg_peak_neutral.append(int(avg_peak))  
+            impulse_neutral.append(int(chosen_moment_stance_integral_val))
+                #first = peaks[0]; second = peaks[1]
+                #if name == 'PF = 0.0, EV = -5.0':
+                #    print("worked")
+                #    figure7.add_trace(go.Scatter(x=[z-peaks_time[0] for z in time_m[first_ind:last_ind]], y=chosen_moment[first_ind:last_ind], mode='lines', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1])) 
+                #    figure7.add_trace(go.Scatter(x=[z-peaks_time[0] for z in peaks_time], y=peaks_array, mode='markers', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1])) 
+                #    figure8.add_trace(go.Scatter(x=[z-peaks_time[0] for z in time_m[first:second]], y=xsens_sag_hip_angle[first:second], mode='lines', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1],marker_color=color_rgb[speed],showlegend=False),1,1) 
+                #    figure8.add_trace(go.Scatter(x=[z-peaks_time[0] for z in time_m[first:second]], y=xsens_sag_knee_angle[first:second], mode='lines', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1],marker_color=color_rgb[speed],showlegend=True),2,1) 
+                #    #figure8.add_trace(go.Scatter(x=[z-peaks_time[0] for z in time_m[first_ind:second_ind]], y=xsens_sag_ankle_angle[first_ind:second_ind], mode='lines', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1]),3,1) 
+
+                #print("found")
+ 
+    pf_array.append(0.0); ev_array.append(0.0); avg_peak_array.append(np.nanmean(avg_peak_neutral)) # to add all neutral to the mix
+    impulse_array.append(np.nanmean(impulse_neutral))
+   
+        #
+    #print(avg_peak_neutral)
+    
+    # remapping theta to ankle angle names
+    polar_moments_red = []; polar_impulses = []; direction_names_blue = [];  polar_moments_blue = []; direction_names_red = []; 
+    polar_moments_red_sorted = []; polar_moments_blue_sorted = []; direction_names_red_sorted = []; direction_names_blue_sorted = [];
+    polar_impulses_red = []; polar_impulses_blue = []; polar_impulses_red_sorted = []; polar_impulses_blue_sorted = [];
+    dummy = 0
+    direction_name = ['Inversion', 'Plantarflexion', 'Eversion' , 'Dorsiflexion','Inversion']
+    order = [0,90,180,-90, 0]
+    #print(direction_array, avg_peak_array); #exit()
+    
+    #for i,z in enumerate(angle_color):
+    #    if z=='red':
+    #        polar_moments_red.append(avg_peak_array[i])
+    #        polar_impulses_red.append(impulse_array[i])
+    #        direction_names_red.append(direction_array[i])
+    #    else:
+    #        polar_moments_blue.append(avg_peak_array[i])
+    #        polar_impulses_blue.append(impulse_array[i])
+    #        direction_names_blue.append(direction_array[i])
+    
+    #for i,z in enumerate(order):
+    #    sort_ind = direction_names_red.index(z)
+    #    polar_moments_red_sorted.append(polar_moments_red[sort_ind])
+    #    polar_impulses_red_sorted.append(polar_impulses_red[sort_ind])
+    #    direction_names_red_sorted.append(direction_names_red[sort_ind])
+        
+    #for i,z in enumerate(order):
+    #    sort_ind = direction_names_blue.index(z)
+    #    polar_moments_blue_sorted.append(polar_moments_blue[sort_ind])
+    #    polar_impulses_blue_sorted.append(polar_impulses_blue[sort_ind])
+    #    direction_names_blue_sorted.append(direction_names_blue[sort_ind])
+            
+
+       
+    #print(avg_peak_neutral_array,direction_array_neutral)
+    avg_peak_array_neutral = np.nanmean(avg_peak_neutral) # to add all neutral to the mix
+    avg_impulses_array_neutral = np.nanmean(impulse_neutral) # to add all neutral to the mix    
+
+        # create color array that is a function of avg_peak_array and does not have 0 as a min
+    color = []
+    second_min = sorted(set(avg_peak_array))
+    for x in (avg_peak_array):#+avg_peak_array_neutral):
+        # if x is 0, make x the 2nd smallest value of avg_peak_array
+        #if x == 0: x = second_min
+        color.append(x)
+        
+    color1 = []
+    second_min = sorted(set(impulse_array))
+    for x in (impulse_array):#+avg_impulses_array_neutral):
+        # if x is 0, make x the 2nd smallest value of avg_peak_array
+        #if x == 0: x = second_min
+        color1.append(x)
+        
+    #print(avg_peak_array_neutral)
+    avg_peak_neutral_array = [avg_peak_array_neutral for z in direction_name] #range(360)
+    polar_impulses_neutral_array = [avg_impulses_array_neutral for z in direction_name] #range(360)
+    #direction_array_neutral = np.linspace(0,360,361)
+    figure_polar1.add_trace(go.Scatterpolar(r=polar_moments_blue_sorted, theta=direction_name, mode='markers+lines',marker_color='blue', name="5 deg"),1,1)
+    #print("5 deg inf:",avg_peak_array,direction_array)
+    figure_polar1.add_trace(go.Scatterpolar(r=avg_peak_neutral_array, theta= direction_name, mode='lines', line_width = 3, name='Neutral'),1,1)
+    figure_polar1.add_trace(go.Scatterpolar(r=polar_moments_red_sorted, theta= direction_name, marker_color='red', mode='markers+lines', name="10 deg"),1,1)
+    
+    figure_polar1.add_trace(go.Scatterpolar(r=polar_impulses_blue_sorted, theta=direction_name, mode='markers+lines',marker_color='blue', name="5 deg"),1,2)
+    figure_polar1.add_trace(go.Scatterpolar(r=polar_impulses_neutral_array, theta= direction_name, mode='lines', line_width = 3, name='Neutral'),1,2)
+    figure_polar1.add_trace(go.Scatterpolar(r=polar_impulses_red_sorted, theta= direction_name, marker_color='red', mode='markers+lines', name="10 deg"),1,2)
+    #print(polar_moments,direction_array)
+    #figure4.add_trace(go.Scatter(x=ev_array_med+ev_array, y=pf_array_med+pf_array, mode='markers', text=avg_peak_array_med+avg_peak_array, marker=dict(size=[z/sizing for z in avg_peak_array_med+avg_peak_array], color=color1, colorscale=colors, colorbar=dict(title=chosen_moment_label), showscale=True))) #'Viridis'
+
+            #figure3.show()
+            #figure4.show()
+            
+    figure4.add_trace(go.Scatter(x=[-z for z in ev_array], y=pf_array, mode='markers', text=avg_peak_array, marker=dict(size=[(z-min(avg_peak_array)+100)/sizing for z in (avg_peak_array)], color=color, colorscale=colors, colorbar=dict(title='Peaks', x=-0.15), showscale=True )),1,1) #'Viridis'
+    figure4.add_trace(go.Scatter(x=[-z for z in ev_array], y=pf_array, mode='markers', text=impulse_array, marker=dict(size=[(z-min(impulse_array)+100)/sizing for z in (impulse_array)], color=color1, colorscale=colors, colorbar=dict(title='Impulses  '), showscale=True)),1,2) #'Viridis'
+    
+    figure_polar.add_trace(go.Scatterpolar(r=polar_moments_red_sorted, theta= direction_array, mode='markers', name=chosen_moment_label+chosen_moment_label[1]))
+    figure_polar.add_trace(go.Scatterpolar(r=avg_peak_neutral_array, theta= direction_name, mode='lines', line_width = 5, name='Neutral'))
+    
+    figure4.update_layout(title=f'PF vs EV, with {chosen_moment_label} Peaks(left) and Impulses (right) as marker color and size', xaxis_title='IV', yaxis_title='PF', xaxis1_title='IV', yaxis1_title='PF', showlegend=False)
+    figure4.update_yaxes(scaleanchor="x", scaleratio=1)
+
+    figure3.update_layout(title=f'{chosen_moment_label} vs Time, with the chosen peaks', xaxis_title='Time (s)', yaxis_title=f'{chosen_moment_label} (Nm)', legend_title='Grouped by Angle')
+    figure_polar.update_layout(title=f'Polar Plot of {chosen_moment_label} vs Angle', legend_title='Grouped by condition')
+    figure_polar1.update_layout(title=f'Polar Plot of {chosen_moment_label} vs Angle', legend_title='Grouped by condition')
+
+
+    #figure3.show()
+    figure4.show()
+    #figure_polar.show()
+    figure_polar1.show()
+
+elif step==3:
+    # OR Sofya, you can instead process the peak finder here (focus on pylon moment, ang vel of shank, CM forward vel, foot segment pos and vel, hip/knee/ankle angles)
+    # Add the peaks of the chosen to topic_individual_peaks_dict
+    folder_name = path+'\\'+'subj1_med_comb\\'
+    
+    
+    # Open pickle file for region data
+    with open(folder_name+'region_all.pickle', 'rb') as handle: #region_all_mini
+        regions = pickle.load(handle)
+        
+    pf_array = []
+    ev_array = []
+    avg_peak_array = []
+    name_array = []
+    avg_peak_neutral = []
+    direction_array = []
+    index = 0
+    index_array = []
+    pf_ev_array = []
+    pf_array_med = []
+    ev_array_med = []
+    angle_color = []
+    chosen_moment_stance = []
+    impulse_array = []
+    impulse_neutral = []
+    chosen_moment_stance_integral = []
+    
     
     # Create break up regions into regions, a region is for a chunck of time
     for x, region in enumerate(regions):
@@ -323,19 +633,35 @@ elif step==2:
         fz = moments['fz'][2]
         
         chosen_moment = mx
+        
         if chosen_moment == mx: 
             chosen_moment_label = 'Frontal Moment'
-            sizing =  10 # 10, 30
+            time_m = [z for z in moments['mx'][1]]
+            sizing =  5 # 10, 30
+            height = 200
         elif chosen_moment == my: 
             chosen_moment_label = 'Sagittal Moment'
-            sizing =  30 # 10, 30
+            time_m = [z for z in moments['my'][1]]
+            sizing =  10 # 10, 30
+            height = 700
         elif chosen_moment == fz: chosen_moment_label = 'Axial Force'
+
+        # low pass filter for chosen moment
+        sos = signal.butter(2, 6, 'lp', fs=100, output='sos')
+        filtered = signal.sosfilt(sos, chosen_moment)
         
-        time_m = [z for z in moments['mx'][1]]
+        chosen_moment = []
+        chosen_moment = [z for z in filtered]
+        
+        name_ind = brain_cmd[0].find('PF =')
+        name = brain_cmd[0][name_ind:]   
+        print(name)
+        
+        #if name in ['PF = 10.0, EV = 0.0', 'PF = 0.0, EV = 10.0', 'PF = -10.0, EV = 0.0', 'PF = 0.0, EV = -10.0']:
         #print(my); print(time_my); break
-        height = 200
+        
         all_peaks, _ = find_peaks(chosen_moment, height=height, distance=50)
-        #print(all_peaks)
+        print(all_peaks)
         #print(len(all_peaks))
         # pick the middle three peaks peaks if there are more than 2 peaks
         if len(all_peaks) > 2:
@@ -345,8 +671,24 @@ elif step==2:
         #peaks = all_peaks[0:1+min(2,len(all_peaks))]
         #peaks = all_peaks
         print(peaks)
+        print(len(time_m))
         peaks_time = [time_m[z] for z in peaks]
         peaks_array = [chosen_moment[z] for z in peaks]
+
+        if len(peaks) > 2:
+                first_ind = peaks[0] - 50
+                if first_ind < 0: first_ind=0
+                second_ind = peaks[1] + 50
+                last_ind = peaks[len(peaks)-1] + 50
+                print(first_ind, second_ind, last_ind)
+                print(len(chosen_moment), len(time_m))
+                #print(chosen_moment,time_m[first_ind:last_ind]); exit()
+                #try:
+                chosen_moment_stance_integral = integrate.cumtrapz(chosen_moment[first_ind:last_ind], time_m[first_ind:last_ind], initial=0)
+                #print(chosen_moment_stance_integral); exit()
+                #except: chosen_moment_stance_integral = [0]
+                chosen_moment_stance_integral_val = chosen_moment_stance_integral[len(chosen_moment_stance_integral)-1]/len(peaks)
+        else: chosen_moment_stance_int = 0
         
         # ignore warnings for nanmean
         #with warnings.catch_warnings():
@@ -360,9 +702,7 @@ elif step==2:
         elif avg_peak == float('nan'): avg_peak = 0
         #print(avg_peak)
             
-        name_ind = brain_cmd[0].find('PF =')
-        name = brain_cmd[0][name_ind:]   
-        print(name)
+        
         name_array.append(name)
         pf = float(name[name.find('PF =')+4:name.find(',')])
         ev = float(name[name.find('EV = ')+4:])
@@ -372,79 +712,165 @@ elif step==2:
         #print(PF_command)
         #print(time_imu)
         #print(imu_gyro)
+        chosen_angles = ['PF = 5.0, EV = 0.0', 'PF = -0.0, EV = 5.0', 'PF = -5.0, EV = 0.0', 'PF = 0.0, EV = -5.0','PF = 10.0, EV = 0.0', 'PF = 0.0, EV = 10.0', 'PF = -10.0, EV = 0.0', 'PF = 0.0, EV = -10.0']
+        chosen_angles_10 = ['PF = 10.0, EV = 0.0', 'PF = 0.0, EV = 10.0', 'PF = -10.0, EV = 0.0', 'PF = 0.0, EV = -10.0']
             
         # sample graph to check variables
         #figure3.add_trace(go.Scatter(x=time_imu,y=imu_gyro, mode='lines', name=name))
-        if name != 'PF = 0.0, EV = 0.0':
+        if name in chosen_angles:
             #figure3.add_trace(go.Scatter(x=time_my, y=my, mode='lines', name=name))
             figure3.add_trace(go.Scatter(x=time_m, y=chosen_moment, mode='lines', name=name, legendgroup=name))
             #print([mx[z] for z in peaks])
-            figure3.add_trace(go.Scatter(x=peaks_time, y=peaks_array, mode='markers', name=name, legendgroup=name))           
+            figure3.add_trace(go.Scatter(x=peaks_time, y=peaks_array, mode='markers', name=name, legendgroup=name)) 
+            index+=1
+            index_array.append(index)            
                 
             # create scatter plot that has x be ev, y be pf, and marker color be avg_peak
             #avg_peak = 0.1
             #figure4.add_trace(go.Scatter(x=[ev], y=[pf], mode='markers', marker=dict(size=abs(0.1*int(avg_peak)), color=abs(0.1*int(avg_peak)), colorscale='Viridis', showscale=True), name=name))
-            pf_array.append(pf)
-            ev_array.append(ev)
-            avg_peak_array.append(int(avg_peak))
-            
-            # cartesian to polar
-            #r = math.sqrt(pf**2 + ev**2)
-            theta = math.atan2(ev, pf)
-            direction = 180/np.pi*theta
-            direction_array.append(direction)
+            if (ev,pf) not in zip(ev_array,pf_array):
+                pf_array.append(pf)
+                ev_array.append(ev)
+                pf_ev_array.append([ev,pf])
+                avg_peak_array.append(int(avg_peak))
+                impulse_array.append(int(chosen_moment_stance_integral_val)) 
+                
+                # cartesian to polar
+                #r = math.sqrt(pf**2 + ev**2)
+                theta = math.atan2(pf,ev)
+                direction = 180/np.pi*theta
+                direction_array.append(direction)
+                if name in chosen_angles_10: angle_color.append('red')
+                else: angle_color.append('blue')
+            else:
+                ind = pf_ev_array.index([ev,pf]) 
+                #print(ind,[ev,pf],pf_ev_array)
+                avg_peak_array[ind] = (avg_peak_array[ind] + int(avg_peak))/2
+                impulse_array[ind] = (impulse_array[ind] + int(chosen_moment_stance_integral_val))/2
         
-        elif name == 'PF = 0.0, EV = 0.0' and 5<len(all_peaks)<11 and valid_cmd: # neutral walking trials with around 10 steps
+        elif name == 'PF = 0.0, EV = 0.0' and len(all_peaks)<6:#6<len(all_peaks)<12: #and valid_cmd: # neutral walking trials with around 10 steps
             #print(valid_cmd)
             figure3.add_trace(go.Scatter(x=time_m, y=chosen_moment, mode='lines', name=name, legendgroup=name))
             figure3.add_trace(go.Scatter(x=peaks_time, y=peaks_array, mode='markers', name=name, legendgroup=name))
                 
             # create scatter plot that has x be ev, y be pf, and marker color be avg_peak
             avg_peak_neutral.append(int(avg_peak))  
-            #theta = math.atan2(ev, pf)
-            #direction = 180/np.pi*theta
-            #direction_array.append(direction)
-            #print('#################################')
-            #pf_array.append(pf)
-            #ev_array.append(ev)
-            #avg_peak_array.append(int(avg_peak))
-    
+            impulse_neutral.append(int(chosen_moment_stance_integral_val))
+                #first = peaks[0]; second = peaks[1]
+                #if name == 'PF = 0.0, EV = -5.0':
+                #    print("worked")
+                #    figure7.add_trace(go.Scatter(x=[z-peaks_time[0] for z in time_m[first_ind:last_ind]], y=chosen_moment[first_ind:last_ind], mode='lines', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1])) 
+                #    figure7.add_trace(go.Scatter(x=[z-peaks_time[0] for z in peaks_time], y=peaks_array, mode='markers', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1])) 
+                #    figure8.add_trace(go.Scatter(x=[z-peaks_time[0] for z in time_m[first:second]], y=xsens_sag_hip_angle[first:second], mode='lines', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1],marker_color=color_rgb[speed],showlegend=False),1,1) 
+                #    figure8.add_trace(go.Scatter(x=[z-peaks_time[0] for z in time_m[first:second]], y=xsens_sag_knee_angle[first:second], mode='lines', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1],marker_color=color_rgb[speed],showlegend=True),2,1) 
+                #    #figure8.add_trace(go.Scatter(x=[z-peaks_time[0] for z in time_m[first_ind:second_ind]], y=xsens_sag_ankle_angle[first_ind:second_ind], mode='lines', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1]),3,1) 
+
+                #print("found")
+ 
     pf_array.append(0.0); ev_array.append(0.0); avg_peak_array.append(np.nanmean(avg_peak_neutral)) # to add all neutral to the mix
-    #
+    impulse_array.append(np.nanmean(impulse_neutral))
+   
+        #
     #print(avg_peak_neutral)
     
-    # create scatter plot that has x be ev, y be pf, and marker color and size be avg_peak, I used a 1/10 or 1/30 for frontal or sagittal for marker sizing  and offset the minimum peak, 
-    print(avg_peak_array,'\n', pf_array ,'\n', ev_array )
+    # remapping theta to ankle angle names
+    polar_moments_red = []; polar_impulses = []; direction_names_blue = [];  polar_moments_blue = []; direction_names_red = []; 
+    polar_moments_red_sorted = []; polar_moments_blue_sorted = []; direction_names_red_sorted = []; direction_names_blue_sorted = [];
+    polar_impulses_red = []; polar_impulses_blue = []; polar_impulses_red_sorted = []; polar_impulses_blue_sorted = [];
+    dummy = 0
+    direction_name = ['Inversion', 'Plantarflexion', 'Eversion' , 'Dorsiflexion','Inversion']
+    order = [180,90, 0,-90, 180]
+    print(direction_array, avg_peak_array); #exit()
     
-    # create color array that is a function of avg_peak_array and does not have 0 as a min
+    for i,z in enumerate(angle_color):
+        if z=='red':
+            polar_moments_red.append(avg_peak_array[i])
+            polar_impulses_red.append(impulse_array[i])
+            direction_names_red.append(direction_array[i])
+        else:
+            polar_moments_blue.append(avg_peak_array[i])
+            polar_impulses_blue.append(impulse_array[i])
+            direction_names_blue.append(direction_array[i])
+    
+    for i,z in enumerate(order):
+        sort_ind = direction_names_red.index(z)
+        polar_moments_red_sorted.append(polar_moments_red[sort_ind])
+        polar_impulses_red_sorted.append(polar_impulses_red[sort_ind])
+        direction_names_red_sorted.append(direction_names_red[sort_ind])
+        
+    for i,z in enumerate(order):
+        sort_ind = direction_names_blue.index(z)
+        polar_moments_blue_sorted.append(polar_moments_blue[sort_ind])
+        polar_impulses_blue_sorted.append(polar_impulses_blue[sort_ind])
+        direction_names_blue_sorted.append(direction_names_blue[sort_ind])
+            
+
+       
+    #print(avg_peak_neutral_array,direction_array_neutral)
+    avg_peak_array_neutral = np.nanmean(avg_peak_neutral) # to add all neutral to the mix
+    avg_impulses_array_neutral = np.nanmean(impulse_neutral) # to add all neutral to the mix    
+
+        # create color array that is a function of avg_peak_array and does not have 0 as a min
     color = []
     second_min = sorted(set(avg_peak_array))
-    for x in avg_peak_array:
+    for x in (avg_peak_array):#+avg_peak_array_neutral):
         # if x is 0, make x the 2nd smallest value of avg_peak_array
-        if x == 0: x = second_min
+        #if x == 0: x = second_min
         color.append(x)
         
-    #print(avg_peak_neutral)
-    avg_peak_neutral_array = [avg_peak_neutral[0] for z in range(360)]
-    direction_array_neutral = np.linspace(0,360,361)
-    #print(avg_peak_neutral_array,direction_array_neutral)
-    figure4.add_trace(go.Scatter(x=ev_array, y=pf_array, mode='markers', text=avg_peak_array, marker=dict(size=[z/sizing for z in avg_peak_array], color=color, colorscale=colors, colorbar=dict(title=chosen_moment_label), showscale=True))) #'Viridis'
-    figure_polar.add_trace(go.Scatterpolar(r=avg_peak_array, theta= direction_array, mode='markers', name=chosen_moment_label+chosen_moment_label[1]))
-    figure_polar.add_trace(go.Scatterpolar(r=avg_peak_neutral_array, theta= direction_array_neutral, mode='lines', line_width = 5, name='Neutral'))
+    color1 = []
+    second_min = sorted(set(impulse_array))
+    for x in (impulse_array):#+avg_impulses_array_neutral):
+        # if x is 0, make x the 2nd smallest value of avg_peak_array
+        #if x == 0: x = second_min
+        color1.append(x)
+        
+    #print(avg_peak_array_neutral)
+    marker_size = 10
+    avg_peak_neutral_array = [avg_peak_array_neutral for z in direction_name] #range(360)
+    polar_impulses_neutral_array = [avg_impulses_array_neutral for z in direction_name] #range(360)
+    #direction_array_neutral = np.linspace(0,360,361)
+    figure_polar1.add_trace(go.Scatterpolar(r=polar_moments_blue_sorted, theta=direction_name, mode='markers',marker_color='blue',  marker=dict(size=marker_size), name="5 deg"),1,1)
+    #print("5 deg inf:",avg_peak_array,direction_array)
+    figure_polar1.add_trace(go.Scatterpolar(r=avg_peak_neutral_array, theta= direction_name, mode='lines', name='Neutral',marker_color='green'),1,1)
+    figure_polar1.add_trace(go.Scatterpolar(r=polar_moments_red_sorted, theta= direction_name, marker_color='red', mode='markers',  marker=dict(size=marker_size), name="10 deg"),1,1)
     
-    figure4.update_layout(title=f'PF vs EV, with Peak {chosen_moment_label} as marker color and size', xaxis_title='EV', yaxis_title='PF')
+    figure_polar1.add_trace(go.Scatterpolar(r=polar_impulses_blue_sorted, theta=direction_name, mode='markers',  marker=dict(size=marker_size), marker_color='blue', name="5 deg",showlegend=False),1,2)
+    figure_polar1.add_trace(go.Scatterpolar(r=polar_impulses_neutral_array, theta= direction_name, mode='lines', name='Neutral',marker_color='green',showlegend=False),1,2)
+    figure_polar1.add_trace(go.Scatterpolar(r=polar_impulses_red_sorted, theta= direction_name, marker_color='red',  marker=dict(size=marker_size), mode='markers', name="10 deg",showlegend=False),1,2)
+    #print(polar_moments,direction_array)
+    #figure4.add_trace(go.Scatter(x=ev_array_med+ev_array, y=pf_array_med+pf_array, mode='markers', text=avg_peak_array_med+avg_peak_array, marker=dict(size=[z/sizing for z in avg_peak_array_med+avg_peak_array], color=color1, colorscale=colors, colorbar=dict(title=chosen_moment_label), showscale=True))) #'Viridis'
+
+            #figure3.show()
+            #figure4.show()
+            
+    figure4.add_trace(go.Scatter(x=[-z for z in ev_array], y=pf_array, mode='markers', text=avg_peak_array, marker=dict(size=[(z-min(avg_peak_array)+100)/sizing for z in (avg_peak_array)], color=color, colorscale=colors, colorbar=dict(title='Peaks', x=-0.15), showscale=True )),1,1) #'Viridis'
+    figure4.add_trace(go.Scatter(x=[-z for z in ev_array], y=pf_array, mode='markers', text=impulse_array, marker=dict(size=[(z-min(impulse_array)+100)/sizing for z in (impulse_array)], color=color1, colorscale=colors, colorbar=dict(title='Impulses  '), showscale=True)),1,2) #'Viridis'
+    
+    figure_polar.add_trace(go.Scatterpolar(r=polar_moments_red_sorted, theta= direction_array, mode='markers', name=chosen_moment_label+chosen_moment_label[1]))
+    figure_polar.add_trace(go.Scatterpolar(r=avg_peak_neutral_array, theta= direction_name, mode='lines', line_width = 5, name='Neutral'))
+    
+    figure4.update_layout(title=f'PF vs EV, with {chosen_moment_label} Peaks(left) and Impulses (right) as marker color and size', xaxis_title='IV', yaxis_title='PF', xaxis1_title='IV', yaxis1_title='PF', showlegend=False)
+    figure4.update_yaxes(scaleanchor="x", scaleratio=1)
+
     figure3.update_layout(title=f'{chosen_moment_label} vs Time, with the chosen peaks', xaxis_title='Time (s)', yaxis_title=f'{chosen_moment_label} (Nm)', legend_title='Grouped by Angle')
     figure_polar.update_layout(title=f'Polar Plot of {chosen_moment_label} vs Angle', legend_title='Grouped by condition')
+    figure_polar1.update_layout(title=f'Polar Plot of {chosen_moment_label} vs Angle', legend_title='Grouped by angle')
 
-    figure3.show()
+
+    #figure3.show()
     figure4.show()
-    figure_polar.show()
+    #figure_polar.show()
+    figure_polar1.show()
     
-elif step==3:
-
-    chosen_files = ['subj1_fast\\', 'subj1_med\\', 'subj1_slow\\']
+elif step==4:
+    data = []
+    chosen_files = ['subj1_fast\\', 'subj1_med_comb\\', 'subj1_slow\\']
+    color_speed = ['red', 'blue','green']
+    time_select = [[2.91,4.05],[4.22,5.65],[4.11,5.57]]
+    time_select_x = [[2.90,4.05],[4.21,5.65],[4.11,5.57]]
     
-    for chosen_file in chosen_files:
+    for speed, chosen_file in enumerate(chosen_files):
         folder_name = path+'\\'+chosen_file
     
     
@@ -458,7 +884,13 @@ elif step==3:
         name_array = []
         avg_peak_neutral = []
         direction_array = []
-    
+        impulse_array = []
+        impulse_neutral = []
+        pf_ev_array = []
+        chosen_angles_10 = []
+        angle_color = []
+
+        
         # Create break up regions into regions, a region is for a chunck of time
         for x, region in enumerate(regions):
             #print(region[2])
@@ -467,9 +899,26 @@ elif step==3:
             time_cmd = [z for z in brain_cmd[1]]
             valid_cmd = region[2]['valid'][2]
             
-            imu = region[1]['gyro_z'] # 1 is IMU
-            imu_gyro = imu[2]
-            time_imu = [z for z in imu[1]]# need to split up panda
+            imu = region[1] # 1 is IMU
+            imu_gyro = imu['gyro_z'][2]
+            imu_state = imu['state'][2]
+            time_imu = [z for z in imu['gyro_z'][1]]# need to split up panda
+            
+            xsens_com = region[4]
+            xsens_walking_speed = xsens_com['com_vel_x'][2]
+            time_com = [z for z in xsens_com['com_vel_x'][1]]
+
+            xsens_ja = region[3]
+            xsens_sag_hip_angle = xsens_ja['hip_sag_right'][2]
+            xsens_frontal_hip_angle = xsens_ja['hip_frontal_right'][2]
+            xsens_sag_knee_angle = xsens_ja['knee_sag_right'][2]
+            xsens_frontal_knee_angle = xsens_ja['knee_frontal_right'][2]
+            xsens_sag_ankle_angle = xsens_ja['ankle_sag_right'][2]
+            time_ja = [z for z in xsens_ja['hip_sag_right'][1]]
+            
+            #xsens_linear = region[4]
+            #xsens_foot = xsens_linear['foot_vert_vel'][2]
+            #time_linear = [z for z in xsens_linear['foot_vert_vel'][1]]
             
             moments = region[0]
             my = moments['my'][2]
@@ -477,19 +926,35 @@ elif step==3:
             fz = moments['fz'][2]
         
             chosen_moment = my
+        
             if chosen_moment == mx: 
                 chosen_moment_label = 'Frontal Moment'
-                sizing =  10 # 10, 30
+                time_m = [z for z in moments['mx'][1]]
+                sizing =  5 # 10, 30
+                height = 200
             elif chosen_moment == my: 
                 chosen_moment_label = 'Sagittal Moment'
-                sizing =  30 # 10, 30
+                time_m = [z for z in moments['my'][1]]
+                sizing =  10 # 10, 30
+                height = 700
             elif chosen_moment == fz: chosen_moment_label = 'Axial Force'
+
+            # low pass filter for chosen moment
+            sos = signal.butter(2, 6, 'lp', fs=100, output='sos')
+            filtered = signal.sosfilt(sos, chosen_moment)
         
-            time_m = [z for z in moments['mx'][1]]
+            chosen_moment = []
+            chosen_moment = [z for z in filtered]
+        
+            name_ind = brain_cmd[0].find('PF =')
+            name = brain_cmd[0][name_ind:]   
+            print(name)
+        
+            #if name in ['PF = 10.0, EV = 0.0', 'PF = 0.0, EV = 10.0', 'PF = -10.0, EV = 0.0', 'PF = 0.0, EV = -10.0']:
             #print(my); print(time_my); break
-            height = 200
+        
             all_peaks, _ = find_peaks(chosen_moment, height=height, distance=50)
-            #print(all_peaks)
+            print(all_peaks)
             #print(len(all_peaks))
             # pick the middle three peaks peaks if there are more than 2 peaks
             if len(all_peaks) > 2:
@@ -499,8 +964,24 @@ elif step==3:
             #peaks = all_peaks[0:1+min(2,len(all_peaks))]
             #peaks = all_peaks
             print(peaks)
+            print(len(time_m))
             peaks_time = [time_m[z] for z in peaks]
             peaks_array = [chosen_moment[z] for z in peaks]
+
+            if len(peaks) > 2:
+                    first_ind = peaks[0] - 50
+                    if first_ind < 0: first_ind=0
+                    second_ind = peaks[1] - 50
+                    last_ind = peaks[len(peaks)-1] + 50
+                    print(first_ind, second_ind, last_ind)
+                    print(len(chosen_moment), len(time_m))
+                    #print(chosen_moment,time_m[first_ind:last_ind]); exit()
+                    #try:
+                    chosen_moment_stance_integral = integrate.cumtrapz(chosen_moment[first_ind:last_ind], time_m[first_ind:last_ind], initial=0)
+                    #print(chosen_moment_stance_integral); exit()
+                    #except: chosen_moment_stance_integral = [0]
+                    chosen_moment_stance_integral_val = chosen_moment_stance_integral[len(chosen_moment_stance_integral)-1]/len(peaks)
+            else: chosen_moment_stance_int = 0
         
             # ignore warnings for nanmean
             #with warnings.catch_warnings():
@@ -513,6 +994,8 @@ elif step==3:
             if math.isnan(avg_peak): avg_peak = 0
             elif avg_peak == float('nan'): avg_peak = 0
             #print(avg_peak)
+            avg_speed = np.nanmean(xsens_walking_speed)
+            
             
             name_ind = brain_cmd[0].find('PF =')
             name = brain_cmd[0][name_ind:]   
@@ -529,32 +1012,72 @@ elif step==3:
             
             # sample graph to check variables
             #figure3.add_trace(go.Scatter(x=time_imu,y=imu_gyro, mode='lines', name=name))
-            if name != 'PF = 0.0, EV = 0.0':
+            chosen_angles = ['PF = 10.0, EV = 0.0', 'PF = 0.0, EV = 10.0', 'PF = -10.0, EV = 0.0', 'PF = 0.0, EV = -10.0']
+            
+            chosen_other = xsens_sag_hip_angle #xsens_walking_speed
+            chosen_other_time = time_ja #time_com
+            # if name is one of chosen angles
+            if name in chosen_angles:
+            
                 #figure3.add_trace(go.Scatter(x=time_my, y=my, mode='lines', name=name))
-                figure3.add_trace(go.Scatter(x=time_m, y=chosen_moment, mode='lines', name=name, legendgroup=name))
+                figure3.add_trace(go.Scatter(x=time_m, y=chosen_moment, mode='lines', name=name, legendgroup=name))                
+
+                #figure3.add_trace(go.Scatter(x=time_m, y=chosen_moment_stance_int, mode='lines', name=name, legendgroup=name))
                 #print([mx[z] for z in peaks])
-                figure3.add_trace(go.Scatter(x=peaks_time, y=peaks_array, mode='markers', name=name, legendgroup=name))           
-                
+                figure3.add_trace(go.Scatter(x=peaks_time, y=peaks_array, mode='markers', name=name, legendgroup=name))  
+                #figure3.add_trace(go.Scatter(x=time_m[first_ind:last_ind], y=chosen_moment_stance_integral, mode='lines', name=name, legendgroup=name))  
+                figure5.add_trace(go.Scatter(x=chosen_other_time, y=chosen_other, mode='markers', name=name, legendgroup=name))
+
+                first = peaks[0]; second = peaks[1]
+                if name == 'PF = 10.0, EV = 0.0':
+                    name = chosen_file[1+chosen_file.find('_'):-1]
+                    if name == 'med_comb': name = 'med'
+                    #print("worked"); exit()
+                    first_ind = [round(z,2) for z in time_m].index(time_select[speed][0])
+                    second_ind = [round(z,2) for z in time_m].index(time_select[speed][1])
+                    first_ind_x = [round(z,2) for z in time_ja].index(time_select_x[speed][0])
+                    second_ind_x = [round(z,2) for z in time_ja].index(time_select_x[speed][1])
+                    figure7.add_trace(go.Scatter(x=[z - time_m[first_ind] for z in time_m[first_ind:second_ind]], y=chosen_moment[first_ind:second_ind], mode='lines', name=name,legendgroup=name)) 
+                    #figure7.add_trace(go.Scatter(x=peaks_time, y=peaks_array, mode='markers', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1])) 
+                    #figure7.add_trace(go.Scatter(x=[z - time_imu[0] for z in time_imu], y=[z*1000 for z in imu_state], mode='lines', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1])) 
+                    #=[z - time_m[first_ind_x] for z in time_m[first_ind_x:second_ind_x]]
+                    figure8.add_trace(go.Scatter(x=[z - time_m[first_ind] for z in time_m[first_ind:second_ind]], y=xsens_sag_hip_angle[first_ind_x:second_ind_x], mode='lines', name=name,legendgroup=name,marker_color=color_rgb[speed],showlegend=False),1,1) 
+                    figure8.add_trace(go.Scatter(x=[z - time_m[first_ind] for z in time_m[first_ind:second_ind]], y=xsens_sag_knee_angle[first_ind_x:second_ind_x], mode='lines', name=name,legendgroup=name,marker_color=color_rgb[speed],showlegend=True),2,1) 
+                    #figure8.add_trace(go.Scatter(x=[z-peaks_time[0] for z in time_m[first_ind:second_ind]], y=xsens_sag_ankle_angle[first_ind:second_ind], mode='lines', name=chosen_file[1+chosen_file.find('_'):-1],legendgroup=chosen_file[1+chosen_file.find('_'):-1]),3,1) 
+
                 # create scatter plot that has x be ev, y be pf, and marker color be avg_peak
                 #avg_peak = 0.1
                 #figure4.add_trace(go.Scatter(x=[ev], y=[pf], mode='markers', marker=dict(size=abs(0.1*int(avg_peak)), color=abs(0.1*int(avg_peak)), colorscale='Viridis', showscale=True), name=name))
-                pf_array.append(pf)
-                ev_array.append(ev)
-                avg_peak_array.append(int(avg_peak))
+                #print(avg_speed, pf, ev, chosen_moment_stance_int)
+                if (ev,pf) not in zip(ev_array,pf_array):
+                    pf_array.append(pf)
+                    ev_array.append(ev)
+                    pf_ev_array.append([ev,pf])
+                    avg_peak_array.append(int(avg_peak))
+                    impulse_array.append(int(chosen_moment_stance_integral_val)) 
+                
+                    # cartesian to polar
+                    #r = math.sqrt(pf**2 + ev**2)
+                    theta = math.atan2(pf,ev)
+                    direction = 180/np.pi*theta
+                    direction_array.append(direction)
+                    #if name in chosen_angles_10: 
+                    angle_color.append('red')
+                    #else: angle_color.append('blue')
+                else:
+                    ind = pf_ev_array.index([ev,pf]) 
+                    #print(ind,[ev,pf],pf_ev_array)
+                    avg_peak_array[ind] = (avg_peak_array[ind] + int(avg_peak))/2
+                    impulse_array[ind] = (impulse_array[ind] + int(chosen_moment_stance_integral_val))/2
             
-                # cartesian to polar
-                #r = math.sqrt(pf**2 + ev**2)
-                theta = math.atan2(ev, pf)
-                direction = 180/np.pi*theta
-                direction_array.append(direction)
-        
-            #elif name == 'PF = 0.0, EV = 0.0' and 5<len(all_peaks)<11 and valid_cmd: # neutral walking trials with around 10 steps
+            elif name == 'PF = 0.0, EV = 0.0' and len(all_peaks)<6: # neutral walking trials with around 10 steps
             #    #print(valid_cmd)
             #    figure3.add_trace(go.Scatter(x=time_m, y=chosen_moment, mode='lines', name=name, legendgroup=name))
             #    figure3.add_trace(go.Scatter(x=peaks_time, y=peaks_array, mode='markers', name=name, legendgroup=name))
                 
             #    # create scatter plot that has x be ev, y be pf, and marker color be avg_peak
-            #    avg_peak_neutral.append(int(avg_peak))  
+                avg_peak_neutral.append(int(avg_peak))  
+                impulse_neutral.append(int(chosen_moment_stance_integral_val))
             #    #theta = math.atan2(ev, pf)
             #    #direction = 180/np.pi*theta
             #    #direction_array.append(direction)
@@ -563,36 +1086,123 @@ elif step==3:
             #    #ev_array.append(ev)
             #    #avg_peak_array.append(int(avg_peak))
     
-        #pf_array.append(0.0); ev_array.append(0.0); avg_peak_array.append(np.nanmean(avg_peak_neutral)) # to add all neutral to the mix
+        pf_array.append(0.0); ev_array.append(0.0); avg_peak_array.append(np.nanmean(avg_peak_neutral)) # to add all neutral to the mix
+        impulse_array.append(np.nanmean(impulse_neutral)) 
         #
-        #print(avg_peak_neutral)
+            # remapping theta to ankle angle names
+        polar_moments_red = []; polar_impulses = []; direction_names_blue = [];  polar_moments_blue = []; direction_names_red = []; 
+        polar_moments_red_sorted = []; polar_moments_blue_sorted = []; direction_names_red_sorted = []; direction_names_blue_sorted = [];
+        polar_impulses_red = []; polar_impulses_blue = []; polar_impulses_red_sorted = []; polar_impulses_blue_sorted = [];
+        dummy = 0
+        direction_name = ['Inversion', 'Plantarflexion', 'Eversion' , 'Dorsiflexion','Inversion']
+        order = [180,90, 0,-90, 180]
+        print(direction_array, avg_peak_array); #exit()
     
-        # create scatter plot that has x be ev, y be pf, and marker color and size be avg_peak, I used a 1/10 or 1/30 for frontal or sagittal for marker sizing  and offset the minimum peak, 
-        print(avg_peak_array,'\n', pf_array ,'\n', ev_array )
+        for i,z in enumerate(angle_color):
+            if z=='red':
+                polar_moments_red.append(avg_peak_array[i])
+                polar_impulses_red.append(impulse_array[i])
+                direction_names_red.append(direction_array[i])
+            #else:
+            #    polar_moments_blue.append(avg_peak_array[i])
+            #    polar_impulses_blue.append(impulse_array[i])
+            #    direction_names_blue.append(direction_array[i])
     
-        # create color array that is a function of avg_peak_array and does not have 0 as a min
+        for i,z in enumerate(order):
+            sort_ind = direction_names_red.index(z)
+            polar_moments_red_sorted.append(polar_moments_red[sort_ind])
+            polar_impulses_red_sorted.append(polar_impulses_red[sort_ind])
+            direction_names_red_sorted.append(direction_names_red[sort_ind])
+        
+        #for i,z in enumerate(order):
+        #    sort_ind = direction_names_blue.index(z)
+        #    polar_moments_blue_sorted.append(polar_moments_blue[sort_ind])
+        #    polar_impulses_blue_sorted.append(polar_impulses_blue[sort_ind])
+        #    direction_names_blue_sorted.append(direction_names_blue[sort_ind])
+            
+
+       
+        #print(avg_peak_neutral_array,direction_array_neutral)
+        avg_peak_array_neutral = np.nanmean(avg_peak_neutral) # to add all neutral to the mix
+        avg_impulses_array_neutral = np.nanmean(impulse_neutral) # to add all neutral to the mix    
+
+            # create color array that is a function of avg_peak_array and does not have 0 as a min
         color = []
         second_min = sorted(set(avg_peak_array))
-        for x in avg_peak_array:
+        for x in (avg_peak_array):#+avg_peak_array_neutral):
             # if x is 0, make x the 2nd smallest value of avg_peak_array
-            if x == 0: x = second_min
+            #if x == 0: x = second_min
             color.append(x)
         
-        #print(avg_peak_neutral)
-        #avg_peak_neutral_array = [avg_peak_neutral[0] for z in range(360)]
+        color1 = []
+        second_min = sorted(set(impulse_array))
+        for x in (impulse_array):#+avg_impulses_array_neutral):
+            # if x is 0, make x the 2nd smallest value of avg_peak_array
+            #if x == 0: x = second_min
+            color1.append(x)
+        
+        #print(avg_peak_array_neutral)
+        name = chosen_file[1+chosen_file.find('_'):-1]
+        if name == 'med_comb': name = 'med'
+        marker_size = 10
+        avg_peak_neutral_array = [avg_peak_array_neutral for z in direction_name] #range(360)
+        polar_impulses_neutral_array = [avg_impulses_array_neutral for z in direction_name] #range(360)
         #direction_array_neutral = np.linspace(0,360,361)
+        #figure_polar1.add_trace(go.Scatterpolar(r=polar_moments_blue_sorted, theta=direction_name, mode='markers',marker_color='blue',  marker=dict(size=marker_size), name="5 deg"),1,1)
+        #print("5 deg inf:",avg_peak_array,direction_array)
+        #figure_polar1.add_trace(go.Scatterpolar(r=avg_peak_neutral_array, theta= direction_name, mode='lines', name='Neutral',marker_color='green'),1,1)
+        figure_polar1.add_trace(go.Scatterpolar(r=polar_moments_red_sorted, theta= direction_name, marker_color=color_speed[speed], mode='lines+markers',  marker=dict(size=marker_size), name=name),1,1)
+    
+        #figure_polar1.add_trace(go.Scatterpolar(r=polar_impulses_blue_sorted, theta=direction_name, mode='markers',  marker=dict(size=marker_size), marker_color='blue', name="5 deg",showlegend=False),1,2)
+        #figure_polar1.add_trace(go.Scatterpolar(r=polar_impulses_neutral_array, theta= direction_name, mode='lines', name='Neutral',marker_color='green',showlegend=False),1,2)
+        figure_polar1.add_trace(go.Scatterpolar(r=polar_impulses_red_sorted, theta= direction_name, marker_color=color_speed[speed],  marker=dict(size=marker_size), mode='lines+markers', name="10 deg",showlegend=False),1,2)
+        
         #print(avg_peak_neutral_array,direction_array_neutral)
-        figure4.add_trace(go.Scatter(x=ev_array, y=pf_array, mode='markers', text=avg_peak_array, marker=dict(size=[z/sizing for z in avg_peak_array], color=color, colorscale=colors, colorbar=dict(title=chosen_moment_label), showscale=True))) #'Viridis'
-        figure_polar.add_trace(go.Scatterpolar(r=avg_peak_array, theta= direction_array, mode='lines+markers', name=chosen_moment_label+chosen_moment_label[1]))
-        #figure_polar.add_trace(go.Scatterpolar(r=avg_peak_neutral_array, theta= direction_array_neutral, mode='lines', line_width = 5, name='Neutral'))
+        #figure4.add_trace(go.Scatter(x=ev_array, y=pf_array, mode='markers', text=avg_peak_array, marker=dict(size=[z/sizing for z in avg_peak_array], color=color, colorscale=colors, colorbar=dict(title=chosen_moment_label), showscale=True))) #'Viridis'
+
+        #figure6.add_trace(go.Scatter(x=ev_array, y=pf_array, mode='markers', text=impulse_array, marker=dict(size=[z/sizing for z in avg_peak_array], color=color, colorscale=colors, colorbar=dict(title=chosen_moment_label), showscale=True))) #'Viridis'
+        #figure6.show()
+        #figure6 = go.Figure()
+        
+        
+        #figure_polar.add_trace(go.Scatterpolar(r=avg_peak_array, theta= direction_array, mode='lines+markers', name=chosen_file[1+chosen_file.find('_'):-1]))
+        #figure_polar.add_trace(go.Scatterpolar(r=polar_moments, theta= direction_name, mode='lines+markers', name=name,legendgroup=name,marker_color=color_rgb[speed],showlegend=False),1,1)
+        
+        #figure_polar.add_trace(go.Scatterpolar(r=polar_impulses, theta= direction_name, mode='lines+markers', name=name,legendgroup=name,marker_color=color_rgb[speed],showlegend=True),1,2)
+        
+        
     
         figure4.update_layout(title=f'PF vs EV, with Peak {chosen_moment_label} as marker color and size', xaxis_title='EV', yaxis_title='PF')
         figure3.update_layout(title=f'{chosen_moment_label} vs Time, with the chosen peaks', xaxis_title='Time (s)', yaxis_title=f'{chosen_moment_label} (Nm)', legend_title='Grouped by Angle')
-        figure_polar.update_layout(title=f'Polar Plot of {chosen_moment_label} vs Angle', legend_title='Grouped by condition')
+        figure_polar.update_layout(title=f'Polar Plot of {chosen_moment_label} Peaks (left) and Impulse (Right) vs Angle', legend_title='Grouped by condition')
+        figure_polar1.update_layout(title=f'Polar Plot of {chosen_moment_label} Impulse vs Angle', legend_title='Grouped by speed')
+        figure7.update_layout(title=f'{chosen_moment_label} vs Time, with the chosen peaks for PF = 10.0, EV = 0.0', xaxis_title='Time (s)', yaxis_title=f'{chosen_moment_label} (Nm)', legend_title='Grouped by Speed')
+        figure8.update_layout(title=f'Hip and Knee angles for one stride of PF= 10.0, EV = 0.0', xaxis2_title='Time (s)', yaxis1_title=f'Hip Angle (deg)', yaxis2_title=f'Knee Angle (deg)', legend_title='Grouped by Speed')
 
+        data.append([chosen_file[:-1], ev_array, pf_array, avg_peak_array, direction_array])
+        #print(data)
+        
     #figure3.show()
     #figure4.show()
-    figure_polar.show()
+    #figure_polar.show()
+    #figure7.show()
+    #figure_polar1.show()
+    #figure5.show()
+    figure8.show()
+    
+    
+    # save to pickle file
+    #print(path+'\results.pickle')
+    with open(path+'\\results.pickle', 'wb') as handle: 
+        pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        
+elif step==5:
+    
+    #open pickle file
+    with open(path+'\\results.pickle', 'rb') as handle: 
+        data = pickle.load(handle) 
+        
+    
     
 else: print("pick a valid option")
 

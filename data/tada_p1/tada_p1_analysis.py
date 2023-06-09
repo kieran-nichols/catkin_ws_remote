@@ -39,6 +39,8 @@ figure4 = go.Figure()
 figure5 = go.Figure()
 figure6 = go.Figure()
 figure7 = go.Figure()
+figure8 = go.Figure()
+figure9 = go.Figure()
 #figure2 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 #figure3 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 #figure_polar = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2], horizontal_spacing=0.075,)# subplot_titles=("Plantarflexor Moment", "Eversion Moment", "Resultant Moment")) 
@@ -212,7 +214,7 @@ elif step==1:
         figure.add_trace(go.Scatter(x=time1, y=motor_listen['curr_pos1'], mode='lines', name='curr_pos of motor1'))
         figure.add_trace(go.Scatter(x=time, y=motor_cmd['m2_cmd'], mode='lines', name='motor2_cmd')) # adding markers slows down the rendering
         figure.add_trace(go.Scatter(x=time1, y=motor_listen['curr_pos2'], mode='lines', name='curr_pos of motor2'))
-        figure.show()
+        #figure.show()
 
         figure2.add_trace(go.Scatter(x=time2, y=motive['rot_X'], mode='lines', name='rot_X of motive')) 
         figure2.add_trace(go.Scatter(x=time2, y=motive['rot_Y'], mode='lines', name='rot_Y of motive'))
@@ -223,16 +225,26 @@ elif step==1:
         figure2.add_trace(go.Scatter(x=time1, y=motor_listen['curr_EV'], mode='lines', name='curr_EV'))
         # add title
         figure2.update_layout(title_text=f'{folder[:-1]}')
-        figure2.show()
+        #figure2.show()
         figure2 = go.Figure()
+        
+        period = slice(24550,24720)
+        offset = 75
+        period1 = slice(24550-offset,24720-offset)
+        movement = motor_listen['curr_PF'][period1] - motor_cmd['PF_cmd'][period]
+        #if abs(movement[0]-movement[offset+ind])/abs(movement[0])>=0.95: #difference < 0.25: # change in error in degrees                            
+        #if np.nanmean(difference_array[i][-10:])<0.1 and len(difference_array[i][-10:])>=10 and abs(val) < 1: #difference < 0.25: # change in error in degrees
 
-        figure1.add_trace(go.Scatter(x=time, y=motor_cmd['PF_cmd'], mode='lines', name='PF_cmd')) # adding markers slows down the rendering
-        figure1.add_trace(go.Scatter(x=time1, y=motor_listen['curr_PF'], mode='lines', name='curr_PF'))
-        #figure1.add_trace(go.Scatter(x=time, y=motor_listen['q1'], mode='lines', name='q1')) # adding markers slows down the rendering
-        #figure1.add_trace(go.Scatter(x=time1, y=motor_listen['q5'], mode='lines', name='q5'))
-        figure1.add_trace(go.Scatter(x=time, y=motor_cmd['EV_cmd'], mode='lines', name='EV_cmd')) # adding markers slows down the rendering
-        figure1.add_trace(go.Scatter(x=time1, y=motor_listen['curr_EV'], mode='lines', name='curr_EV'))
-        #figure1.show()
+        figure1.add_trace(go.Scatter(x=time[period], y=motor_cmd['PF_cmd'][period], mode='lines', name='PF_command',marker=dict(color='red'))) # adding markers slows down the rendering
+        figure1.add_trace(go.Scatter(x=time1[period1], y=motor_listen['curr_PF'][period1], mode='lines', name='PF_actual',marker=dict(color='lightcoral')))        
+        figure1.add_trace(go.Scatter(x=time[period], y=motor_cmd['EV_cmd'][period], mode='lines', name='EV_command',marker=dict(color='blue'))) # adding markers slows down the rendering
+        figure1.add_trace(go.Scatter(x=time1[period1], y=motor_listen['curr_EV'][period1], mode='lines', name='EV_actual',marker=dict(color='steelblue')))
+        figure1.add_trace(go.Scatter(x=[time1[24598-offset],time1[24682-offset]], y=[motor_listen['curr_PF'][24598-offset],motor_listen['curr_PF'][24682-offset]], mode='markers', name='95% Rise Time', marker=dict(size=10)))
+        figure1.add_trace(go.Scatter(x=[time1[24613-offset],time1[24699-offset]], y=[motor_listen['curr_PF'][24613-offset],motor_listen['curr_PF'][24699-offset]], mode='markers', name='Settling Time', marker=dict(size=10)))
+        figure1.update_layout(title_text=f'Ankle Angle commands and actual positions')
+        figure1.update_xaxes(title_text='Time (s)')
+        figure1.update_yaxes(title_text='PF and EV Angles (deg)')
+        figure1.show()
 
         figure3.add_trace(go.Scatter(x=time, y=motor_cmd['CPU0'], mode='lines', name='CPU0')) # adding markers slows down the rendering
         figure3.add_trace(go.Scatter(x=time, y=motor_cmd['CPU1'], mode='lines', name='CPU1'))
@@ -247,7 +259,7 @@ elif step==1:
         figure4.update_layout(title_text=f'{folder[:-1]}')
         #figure4.show()
         #figure4 = go.Figure()
-        #exit()
+        exit()
 
         
         # create lists for all topics that creates regions of time based on trial selector where the cmds are not 0
@@ -365,6 +377,8 @@ elif step==2:
     angle_control_array = [[],[]]
     angle_actual_array = [[],[]]
     angle_motive_array = [[],[]]
+    motor_angle_array = [[],[]]
+    move_time_95 = [[],[]]
             
     for x, region in enumerate(regions):
             
@@ -373,6 +387,10 @@ elif step==2:
         PF_command = metric_cmd[2] # 0 is PF for metric[0]
         metric_cmd_ev = region[0]['EV_cmd']
         EV_command = metric_cmd_ev[2] # 0 is PF for metric[0]
+        metric_cmd_m = region[0]
+        metric_cmd_m1 = metric_cmd_m['m1_cmd'][2]
+        #print(metric_cmd_m1)
+        metric_cmd_m2 = metric_cmd_m['m2_cmd'][2]
         time_list = [z for z in metric_cmd[1]]# need to split up panda
         name_ind = metric_cmd[0].find('PF =')
         name = metric_cmd[0][name_ind:]  
@@ -383,6 +401,10 @@ elif step==2:
         PF_actual = metric_actual[2] # 0 is PF for metric[0]
         metric_actual_ev = region[1]['curr_EV']
         EV_actual = metric_actual_ev[2] # 0 is PF for metric[0]
+        metric_actual_m = region[1]
+        metric_actual_m1 = [z*360 for z in metric_actual_m['curr_pos1'][2]]
+        metric_actual_m2 = [z*360 for z in metric_actual_m['curr_pos2'][2]]
+        #print(metric_actual_m1)
         
         metric_motive = region[2]['rot_Z']
         PF_motive = metric_motive[2] # 0 is PF for metric[0] 
@@ -410,7 +432,8 @@ elif step==2:
         angle_cmd = [[PF_command[i], EV_command[i]] for i in range(min_list_length)]
         angle_actual = [[PF_actual[i], EV_actual[i]] for i in range(min_list_length)]
         angle_motive = [[PF_motive[i], EV_motive[i]] for i in range(min_list_length)]
-
+        motor_angle = [[metric_actual_m1[i]-metric_actual_m1[0], metric_actual_m2[i]-metric_actual_m2[0]] for i in range(min_list_length)]
+        #print(motor_angle); exit()
         i = 0
         # find movement time by searching for a change of value starting at the end of the diff arrays
         offset = 10
@@ -419,7 +442,6 @@ elif step==2:
         dist_trav = [0,0]
         first = 0  
         difference_array = [[],[]]
-
             
         # For hall sensors and motive
         movements = [diff, diff_motive]
@@ -427,22 +449,34 @@ elif step==2:
             prev_val = 0
             first = 0
             #if i==1: min_list_length = 50; else: pass
-            indexes = list(range(offset,len(time_list[offset:min_list_length])-1))
+            indexes = list(range(offset,min_list_length))
+            last = 0
+            stop = 0
             
-            for j, val, t in zip(indexes,movement[offset:], time_list[offset:min_list_length]):
+            for ind, (j, val, t) in enumerate(zip(indexes,movement[offset:min_list_length], time_list[offset:min_list_length])):
                 #approx_val = round(val, 2)
                 approx_val = val
                 difference = abs(approx_val - prev_val)
                 difference_array[i].append(difference)
-                prev_val = approx_val
+                prev_val = approx_val                
+                
                 # find start time when approx val changes value and end time when it stops being equal to approx_val
                 # mean of last 5 items of steady_info_val should be less than 0.25
-                if np.nanmean(difference_array[i][-10:])<0.1:# and abs(val) < 1.5: #difference < 0.25: # change in error in degrees
+
+                if abs(movement[0]-movement[offset+ind])/abs(movement[0])>=0.95 and abs(val) < 1 and stop == 0: #difference < 0.25: # change in error in degrees
+                    move_time_95[i].append(t)
+                    stop = 1
+                
+                if np.nanmean(difference_array[i][-10:])<0.1 and len(difference_array[i][-10:])>=10 and abs(val) > 1 and last==0:
+                    counter[i] += 1  
+                    last = 1
+                
+                if np.nanmean(difference_array[i][-10:])<0.1 and len(difference_array[i][-10:])>=10 and abs(val) < 1: #difference < 0.25: # change in error in degrees
                     #if abs(approx_val) < 0.25:
-                    steady_time[i] = [t]
+                    steady_time[i] = [t-0.1]
                     steady_val[i] = [val]
                     dist_trav[i] = [abs(movement[0])]
-                    steady_info_time[i].append(t)
+                    steady_info_time[i].append(steady_time[i][0])
                     steady_info_val[i].append(abs(val)) 
                     steady_info_displacement[i].append(dist_trav[i])
                     
@@ -451,15 +485,15 @@ elif step==2:
                         angle_control_array.append([pf_control, ev_control])
                         pf_actual, ev_actual = angle_actual[j]
                         angle_actual_array.append([pf_actual, ev_actual])
+                        x,y = motor_angle[j]
+                        motor_angle_array.append([x,y])
                     else:
                         pf_motive, ev_motive = angle_motive[j]
                         angle_motive_array.append([pf_motive, ev_motive])
-
                     
-                    #print(steady_val[i])
-                    if abs(val) > 1.5:  counter[i] += 1 
+                    #print(steady_val[i])    
                     break
-                        
+                   
                 # need to complete
                     #elif abs(approx_val) > 0.25 and np.nanmean(difference_array[i][-10:])<0.1: # abs(approx_val) > 0.25:# and first==0: # abs(approx_val) > 2
                     #    steady_time[i] = [t]
@@ -475,7 +509,7 @@ elif step==2:
                     #    break
                         
                 # t is equal to last item of time_list
-                elif t==time_list[min_list_length-1]:# and False:                  
+                elif t==time_list[min_list_length-1] and False:                  
                     steady_time[i] = [t]
                     steady_val[i] = [val]
                     dist_trav[i] = [abs(movement[0])]
@@ -494,11 +528,10 @@ elif step==2:
                     #print(steady_val[i])
                     break
                 
-                else: pass
-                
+                else: pass              
+                                
                 #i+=1
-        #print(steady_time, steady_val)
-        #print(diff)
+        #print(steady_time, steady_val)        
         #print(x, name)  
         # go to the next item of the list, colors
         #color = colors[color_ind_array[x]]
@@ -511,48 +544,82 @@ elif step==2:
             
             figure6.add_trace(go.Scatter(x=[ev_control], y=[pf_control], mode='markers', marker_color='Red')) 
             figure6.add_trace(go.Scatter(x=[ev_actual], y=[pf_actual], mode='markers', marker_color='Blue'))
-            figure6.add_trace(go.Scatter(x=[ev_motive], y=[pf_motive], mode='markers', marker_color='Purple'))
+            #figure6.add_trace(go.Scatter(x=[ev_motive], y=[pf_motive], mode='markers', marker_color='Purple'))
+                    
+            
         except: pass
         #figure4.add_trace(go.Scatter(x=steady_time,y=dist_trav, mode='markers', name=name, legendgroup=name, marker_color=color)) # name, 'hall_sensors'
         #figure3.add_trace(go.Scatter(x=time_list,y=diff_motive, mode='lines', name=name, legendgroup=name, marker_color=color)) # 'motive'
             #something in the below line is causing the error due to the length of the arrays or some error in the detector
         #figure3.add_trace(go.Scatter(x=steady_time[1],y=steady_val[1], mode='lines', name=name, legendgroup=name, marker_color=other_color)) # 'motive'
         #break
-        
-    figure2.show()  
-    figure5.show()
-    figure6.show()
+    #print([z for z in motor_angle_array if z!= []], '\n\n',steady_info_time[0])  ; exit()
+    x0 = [abs(z[0]) for z in motor_angle_array if z!=[]]
+    x1 = [abs(z[1]) for z in motor_angle_array if z!=[]]
+    figure8.add_trace(go.Scatter(x=x0, y=steady_info_time[0], mode='markers', marker_color='Blue', name="Top"))
+    figure8.add_trace(go.Scatter(x=x1, y=steady_info_time[0], mode='markers', marker_color='Red', name="Bottom"))
+    
+    figure9.add_trace(go.Scatter(x=x0, y=steady_info_val[0], mode='markers', marker_color='Blue', name="Top"))
+    figure9.add_trace(go.Scatter(x=x1, y=steady_info_val[0], mode='markers', marker_color='Red', name="Bottom"))
+    
+    figure9.update_layout(title='PF Error of Movement', xaxis_title='Change of Motor Angle (deg)', yaxis_title='Final PF Error (deg)')
+    figure8.update_layout(title='Speed of Motor Movement', xaxis_title='Change of Motor Angle (deg)', yaxis_title='Movement Time (s)')
+    figure6.update_layout(title='Pose Accuracy and Repeatability', xaxis_title='EV (deg)', yaxis_title='PF (deg)')
+    
+    #print('counter: ', counter)   
+    #figure2.show()  
+    #figure5.show()
+    #figure6.show()
+    figure8.show()
+    figure9.show()
     
     angle_dict = {}
     # create for loop for unique values of angle_control_array
     # create dict storage where key is angle_control_array and value is angle_actual_array and angle_motive_array
     #print(angle_control_array)
+    missed = 0
     for x,y,z in zip(angle_control_array, angle_actual_array, angle_motive_array):
-        if x != [] and y != [] and z != []:
+        if x != []:# and y != []:# and z != []:
             #print(x,y,z)
             x_label = f'{x}'
+            
             if x_label not in angle_dict:
-                angle_dict[x_label] = [x,y,z]
-                #print(angle_dict)#; exit()
-                #print(angle_dict[x_label][2])
-            else:     
-                angle_dict[x_label][0] = angle_dict[x_label][0]+x
-                angle_dict[x_label][1] = angle_dict[x_label][1]+y
-                angle_dict[x_label][2] = angle_dict[x_label][2]+z
+                angle_dict[x_label] = {}
+                #angle_dict[x_label] = [x,y,z]
+                angle_dict[x_label]['control'] = [x]
+                angle_dict[x_label]['hall'] = [y]
+                angle_dict[x_label]['motive'] = [z]
                 #print(angle_dict); exit()
-    
+            else:     
+                angle_dict[x_label]['control'] = angle_dict[x_label]['control']+[x]
+                angle_dict[x_label]['hall'] = angle_dict[x_label]['hall']+[y]
+                angle_dict[x_label]['motive'] = angle_dict[x_label]['motive']+[z]
+                #print(angle_dict); exit()
+        else: missed += 1
+    print("missed: ", missed)
     #print(angle_dict)
     # find averages of the values of angle_dict for each key
     for key in angle_dict:
         #print(key)
-        #print(angle_dict[key][0])
-        command = [np.mean(angle_dict[key][0][0]),np.mean(angle_dict[key][0][1])]
-        actual = [np.mean(angle_dict[key][1][0]),np.mean(angle_dict[key][1][1])]
-        motive = [np.mean(angle_dict[key][2][0]),np.mean(angle_dict[key][2][1])]
-        print(command,actual,motive)
-        figure7.add_trace(go.Scatter(x=[command[0]], y=[command[1]], mode='markers', marker_color='Red'))
-        figure7.add_trace(go.Scatter(x=[actual[0]], y=[actual[1]], mode='markers', marker_color='Blue'))
-        figure7.add_trace(go.Scatter(x=[motive[0]], y=[motive[1]], mode='markers', marker_color='Purple'))
+        #print(angle_dict[key]); print(angle_dict[key]['control']); print(angle_dict[key]['control'][0]); 
+        #print([z[0] for z in angle_dict[key]['hall']]); #exit()
+        command = [np.mean([z[0] for z in angle_dict[key]['control']]), np.mean([z[1] for z in angle_dict[key]['control']])]
+        actual = [np.mean([z[0] for z in angle_dict[key]['hall']]), np.mean([z[1] for z in angle_dict[key]['hall']])]
+        actual_sd = [np.std([z[0] for z in angle_dict[key]['hall']]), np.std([z[1] for z in angle_dict[key]['hall']])]
+        motive = [np.mean([z[0] for z in angle_dict[key]['motive']]), np.mean([z[1] for z in angle_dict[key]['motive']])]
+        #print(command,actual,motive)
+        name1 = "Intented Position"
+        name2 = "Actual Position"
+        # showlegend is False key is not the last of angle_dict
+        #print(list(angle_dict.keys())[0])
+        if key != list(angle_dict.keys())[-1]: showlegend = False
+        else: showlegend = True
+        
+        figure7.add_trace(go.Scatter(x=[command[1]], y=[command[0]], mode='markers', marker_color='Red', name=name1, legendgroup=name1, showlegend=showlegend))
+        figure7.add_trace(go.Scatter(x=[actual[1]], y=[actual[0]], error_x=dict(array=[actual_sd[0]]), error_y=dict(array=[actual_sd[1]]), mode='markers', marker_color='Blue', name=name2, legendgroup=name2, showlegend=showlegend))
+        #figure7.add_trace(go.Scatter(x=[motive[0]], y=[motive[1]], mode='markers', marker_color='Purple'))
+    
+    figure7.update_layout(title='Pose Precision and Repeatability', xaxis_title='EV (deg)', yaxis_title='PF (deg)')
     
     figure7.show()
         
@@ -560,10 +627,14 @@ elif step==2:
     #figure2 = go.Figure()
     #figure3.show()     
     #print(steady_info_time); #break
-    print("Average and sd times to steady state:", np.mean(steady_info_time[0]),',', np.std(steady_info_time[0]), "seconds")
-    print("Average absolute error and its sd for steady state:", np.mean(steady_info_val[0]),',', np.std(steady_info_val[0]), "degrees\n")
+    print("Average, sd, max times to steady state:", np.mean(steady_info_time[0]),',', np.std(steady_info_time[0]), max(steady_info_time[0]), "seconds")
+    print("Average absolute error and its sd for steady state:", np.mean(steady_info_val[0]),',', np.std(steady_info_val[0]), "degrees")
+    print("Average and sd times to 95% rise time:", np.mean(move_time_95[0]),',', np.std(move_time_95[0]), "seconds\n")
+
     print("Average and sd times to steady state:", np.mean(steady_info_time[1]),',', np.std(steady_info_time[1]), "seconds")
     print("Average absolute error and its sd for steady state:", np.mean(steady_info_val[1]),',', np.std(steady_info_val[1]), "degrees")
+    print("Average and sd times to 95% rise time:", np.mean(move_time_95[1]),',', np.std(move_time_95[1]), "seconds")
+
     print("Stuck movment number: ", counter,"\n")
     print("Averages and sd for CPU0:", [np.mean(CPU0), np.std(CPU0)], "CPU1:", [np.mean(CPU1), np.std(CPU1)], "CPU2:", [np.mean(CPU2), np.std(CPU2)], "CPU3:", [np.mean(CPU3), np.std(CPU3)])
     print("Average CPU load:", np.mean([CPU0, CPU1, CPU2, CPU3]), "CPU_sd:", np.std([CPU0, CPU1, CPU2, CPU3]))
