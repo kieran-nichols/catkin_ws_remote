@@ -18,6 +18,10 @@ import math
 #from scipy.signal import butter, lfilter, freqz
 #from scipy.signal import find_peaks
 from scipy import signal
+from scipy.signal import savgol_filter
+from scipy.signal import find_peaks
+from scipy import integrate
+from scipy import stats
 
 colors = n_colors('rgb(0, 255, 255)', 'rgb(0, 0, 255)', 255, colortype = 'rgb')
 color_rgb = ['Red', 'Green', 'Blue']
@@ -64,7 +68,8 @@ figure4 = make_subplots(rows=1, cols=2, shared_xaxes=True, vertical_spacing=0.15
 figure5 = go.Figure()
 figure6 = go.Figure()
 figure7 = go.Figure()
-figure8 = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.15, horizontal_spacing=0.009)   
+figure8 = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.15, horizontal_spacing=0.009)
+figure10 = go.Figure()
 #figure3 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 figure_polar = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2], horizontal_spacing=0.075,)# subplot_titles=("Plantarflexor Moment", "Eversion Moment", "Resultant Moment")) 
 figure_polar1 = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2], horizontal_spacing=0.075,)
@@ -632,7 +637,7 @@ elif step==3:
         mx = moments['mx'][2]
         fz = moments['fz'][2]
         
-        chosen_moment = mx
+        chosen_moment = my
         
         if chosen_moment == mx: 
             chosen_moment_label = 'Frontal Moment'
@@ -863,6 +868,157 @@ elif step==3:
     #figure_polar.show()
     figure_polar1.show()
     
+    data = [[-z for z in ev_array],pf_array,avg_peak_array,impulse_array]
+    
+    with open(path+'\\results_step2_sagittal.pickle', 'wb') as handle: 
+        pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        
+elif step==6:
+    
+    with open(path+'\\results_step2_sagittal.pickle', 'rb') as handle: #results_step2_frontal.pickle'
+        data = pickle.load(handle)
+    print(data)
+    ev_array = data[0]
+    pf_array = data[1]
+    avg_peak_array = data[2]
+    impulse_array = data[3]
+
+    peaks_ev = []
+    peaks_pf = []
+    impulses_ev = []
+    impulses_pf = []
+    pf_arr = []
+    ev_arr = []
+        
+    for x,y,a,b in zip(ev_array,pf_array,avg_peak_array,impulse_array):
+        if x==0: # plot PF
+            #print(x,y)
+            peaks_pf.append(a)
+            impulses_pf.append(b)
+            pf_arr.append(y)
+            #figure10.add_trace(go.Scatter(x=[y], y=[a], mode='markers', marker=dict(size=10, color='red'), showlegend=True))
+            #figure10.add_trace(go.Scatter(x=[y], y=[b], mode='markers', marker=dict(size=10, color='blue'), showlegend=True))
+        elif y==0: # plot EV
+            #print(x,y)
+            peaks_ev.append(a)
+            impulses_ev.append(b)
+            ev_arr.append(x)
+            #figure10.add_trace(go.Scatter(x=[x], y=[a], mode='markers+lines', marker=dict(size=10, color='darkred'), showlegend=True))
+            #figure10.add_trace(go.Scatter(x=[x], y=[b], mode='markers+lines', marker=dict(size=10, color='darkblue'), showlegend=True))
+        else:
+            pass
+        if (x == 0 and y==0):
+            peaks_pf.append(a)
+            impulses_pf.append(b)
+            pf_arr.append(y)
+            peaks_ev.append(a)
+            impulses_ev.append(b)
+            ev_arr.append(x)
+    print(peaks_ev,impulses_ev,ev_arr)
+    
+    # sort ev_arr in increasing value
+    ev_arr, peaks_ev, impulses_ev = zip(*sorted(zip(ev_arr, peaks_ev, impulses_ev)))
+    pf_arr, peaks_pf, impulses_pf = zip(*sorted(zip(pf_arr, peaks_pf, impulses_pf)))
+    
+    # find slope of the line for ev_arr and peaks_ev
+    slope_peaks_ev, intercept_peaks_ev, r_value_peaks_ev, p_value_peaks_ev, std_err_peaks_ev = stats.linregress(ev_arr,peaks_ev)
+    slope_impulses_ev, intercept_impulses_ev, r_value_impulses_ev, p_value_impulses_ev, std_err_impulses_ev = stats.linregress(ev_arr,impulses_ev)
+    slope_peaks_pf, intercept_peaks_pf, r_value_peaks_pf, p_value_peaks_pf, std_err_peaks_pf = stats.linregress(pf_arr,peaks_pf)
+    slope_impulses_pf, intercept_impulses_pf, r_value_impulses_pf, p_value_impulses_pf, std_err_impulses_pf = stats.linregress(pf_arr,impulses_pf)
+    print("slope, intecept, r_value, p_value")
+    print(slope_peaks_ev, intercept_peaks_ev, r_value_peaks_ev, p_value_peaks_ev, std_err_peaks_ev)
+    print(slope_impulses_ev, intercept_impulses_ev, r_value_impulses_ev, p_value_impulses_ev, std_err_impulses_ev)
+    print(slope_peaks_pf, intercept_peaks_pf, r_value_peaks_pf, p_value_peaks_pf, std_err_peaks_pf)
+    print(slope_impulses_pf, intercept_impulses_pf, r_value_impulses_pf, p_value_impulses_pf, std_err_impulses_pf)
+    
+    figure10.add_trace(go.Scatter(x=pf_arr, y=peaks_pf, mode='markers+lines', marker=dict(size=10, color='red'), showlegend=True, name='Peaks for PF'))
+    figure10.add_trace(go.Scatter(x=pf_arr, y=impulses_pf, mode='markers+lines', marker=dict(size=10, color='darkred '), showlegend=True, name='Impulses for PF'))
+    figure10.add_trace(go.Scatter(x=ev_arr, y=peaks_ev, mode='markers+lines', marker=dict(size=10, color='blue'), showlegend=True, name='Peaks for IV'))
+    figure10.add_trace(go.Scatter(x=ev_arr, y=impulses_ev, mode='markers+lines', marker=dict(size=10, color='darkblue'), showlegend=True, name='Impulse for IV'))
+
+    figure10.update_layout(title=f'Peaks and Impulses for Sagittal Moments for various Ankle Angles', xaxis_title='PF/IV angles', yaxis_title='Magnitude', showlegend=True)
+    figure10.show()
+    
+elif step==7:
+    
+    with open(path+'\\results_speeds_frontal.pickle', 'rb') as handle: #results_speeds.pickle'
+        data_all = pickle.load(handle)
+    
+    print(data_all)
+    
+    peaks_ev = []
+    peaks_pf = []
+    impulses_ev = []
+    impulses_pf = []
+    pf_arr = []
+    ev_arr = []
+    peaks_other = []
+    impulses_other = []
+    other_arr = []
+    
+    for data in data_all:
+        ev_array = data[0]
+        pf_array = data[1]
+        avg_peak_array = data[2]
+        impulse_array = data[3]
+        speed = data[4]
+
+        for x,y,a,b in zip(ev_array,pf_array,avg_peak_array,impulse_array):
+            angle,angle1 = y,x
+            if speed==0 and angle==0: # plot PF
+                #print(x,y)
+                peaks_pf.append(a)
+                impulses_pf.append(b)
+                pf_arr.append(angle1)
+                #figure10.add_trace(go.Scatter(x=[y], y=[a], mode='markers', marker=dict(size=10, color='red'), showlegend=True))
+                #figure10.add_trace(go.Scatter(x=[y], y=[b], mode='markers', marker=dict(size=10, color='blue'), showlegend=True))
+            elif speed==1 and angle==0: 
+                #print(x,y)
+                peaks_ev.append(a)
+                impulses_ev.append(b)
+                ev_arr.append(angle1)
+                #figure10.add_trace(go.Scatter(x=[x], y=[a], mode='markers+lines', marker=dict(size=10, color='darkred'), showlegend=True))
+                #figure10.add_trace(go.Scatter(x=[x], y=[b], mode='markers+lines', marker=dict(size=10, color='darkblue'), showlegend=True))
+            elif speed==2 and angle==0: # plot EV
+                #print(x,y)
+                peaks_other.append(a)
+                impulses_other.append(b)
+                other_arr.append(angle1)
+            else:
+                pass   
+    print(peaks_ev,impulses_ev)
+    # sort ev_arr in increasing value
+    ev_arr, peaks_ev, impulses_ev = zip(*sorted(zip(ev_arr, peaks_ev, impulses_ev)))
+    pf_arr, peaks_pf, impulses_pf = zip(*sorted(zip(pf_arr, peaks_pf, impulses_pf)))
+    other_arr, peaks_other, impulses_other = zip(*sorted(zip(other_arr, peaks_other, impulses_other)))
+    
+    # find slope of the line for ev_arr and peaks_ev
+    slope_peaks_ev, intercept_peaks_ev, r_value_peaks_ev, p_value_peaks_ev, std_err_peaks_ev = stats.linregress(ev_arr,peaks_ev)
+    slope_impulses_ev, intercept_impulses_ev, r_value_impulses_ev, p_value_impulses_ev, std_err_impulses_ev = stats.linregress(ev_arr,impulses_ev)
+    slope_peaks_pf, intercept_peaks_pf, r_value_peaks_pf, p_value_peaks_pf, std_err_peaks_pf = stats.linregress(pf_arr,peaks_pf)
+    slope_impulses_pf, intercept_impulses_pf, r_value_impulses_pf, p_value_impulses_pf, std_err_impulses_pf = stats.linregress(pf_arr,impulses_pf) 
+    slope_peaks_other, intercept_peaks_other, r_value_peaks_other, p_value_peaks_other, std_err_peaks_other = stats.linregress(other_arr,peaks_other)
+    slope_impulses_other, intercept_impulses_other, r_value_impulses_other, p_value_impulses_other, std_err_impulses_other = stats.linregress(other_arr,impulses_other)
+        
+    print("slope, intecept, r_value, p_value")
+    print(slope_peaks_ev, intercept_peaks_ev, r_value_peaks_ev, p_value_peaks_ev, std_err_peaks_ev)
+    print(slope_impulses_ev, intercept_impulses_ev, r_value_impulses_ev, p_value_impulses_ev, std_err_impulses_ev)
+    print(slope_peaks_pf, intercept_peaks_pf, r_value_peaks_pf, p_value_peaks_pf, std_err_peaks_pf)
+    print(slope_impulses_pf, intercept_impulses_pf, r_value_impulses_pf, p_value_impulses_pf, std_err_impulses_pf)
+    print(slope_peaks_other, intercept_peaks_other, r_value_peaks_other, p_value_peaks_other, std_err_peaks_other)      
+    print(slope_impulses_other, intercept_impulses_other, r_value_impulses_other, p_value_impulses_other, std_err_impulses_other)
+    
+    
+    figure10.add_trace(go.Scatter(x=pf_arr, y=peaks_pf, mode='markers+lines', marker=dict(size=10, color='red'), showlegend=True, name='Peaks for Fast'))
+    figure10.add_trace(go.Scatter(x=pf_arr, y=impulses_pf, mode='markers+lines', marker=dict(size=10, color='darkred '), showlegend=True, name='Impulses for Fast'))
+    figure10.add_trace(go.Scatter(x=ev_arr, y=peaks_ev, mode='markers+lines', marker=dict(size=10, color='blue'), showlegend=True, name='Peaks for Med'))
+    figure10.add_trace(go.Scatter(x=ev_arr, y=impulses_ev, mode='markers+lines', marker=dict(size=10, color='darkblue'), showlegend=True, name='Impulse for Med'))
+    figure10.add_trace(go.Scatter(x=other_arr, y=peaks_other, mode='markers+lines', marker=dict(size=10, color='green'), showlegend=True, name='Peaks for Slow'))
+    figure10.add_trace(go.Scatter(x=other_arr, y=impulses_other, mode='markers+lines', marker=dict(size=10, color='darkgreen'), showlegend=True, name='Impulses for Slow'))
+
+    figure10.update_layout(title=f'Effect of Walking Speed on Peaks and Impulses of Frontal Moments for only changes in IV angles', xaxis_title='IV angles', yaxis_title='Magnitude', showlegend=True)
+    figure10.show()
+    
 elif step==4:
     data = []
     chosen_files = ['subj1_fast\\', 'subj1_med_comb\\', 'subj1_slow\\']
@@ -925,7 +1081,7 @@ elif step==4:
             mx = moments['mx'][2]
             fz = moments['fz'][2]
         
-            chosen_moment = my
+            chosen_moment = mx
         
             if chosen_moment == mx: 
                 chosen_moment_label = 'Frontal Moment'
@@ -1070,7 +1226,7 @@ elif step==4:
                     avg_peak_array[ind] = (avg_peak_array[ind] + int(avg_peak))/2
                     impulse_array[ind] = (impulse_array[ind] + int(chosen_moment_stance_integral_val))/2
             
-            elif name == 'PF = 0.0, EV = 0.0' and len(all_peaks)<6: # neutral walking trials with around 10 steps
+            elif name == 'PF = 0.0, EV = 0.0' and len(all_peaks)<7: # neutral walking trials with around 10 steps
             #    #print(valid_cmd)
             #    figure3.add_trace(go.Scatter(x=time_m, y=chosen_moment, mode='lines', name=name, legendgroup=name))
             #    figure3.add_trace(go.Scatter(x=peaks_time, y=peaks_array, mode='markers', name=name, legendgroup=name))
@@ -1179,7 +1335,7 @@ elif step==4:
         figure7.update_layout(title=f'{chosen_moment_label} vs Time, with the chosen peaks for PF = 10.0, EV = 0.0', xaxis_title='Time (s)', yaxis_title=f'{chosen_moment_label} (Nm)', legend_title='Grouped by Speed')
         figure8.update_layout(title=f'Hip and Knee angles for one stride of PF= 10.0, EV = 0.0', xaxis2_title='Time (s)', yaxis1_title=f'Hip Angle (deg)', yaxis2_title=f'Knee Angle (deg)', legend_title='Grouped by Speed')
 
-        data.append([chosen_file[:-1], ev_array, pf_array, avg_peak_array, direction_array])
+        data.append([ev_array, pf_array, avg_peak_array,impulse_array,speed])
         #print(data)
         
     #figure3.show()
@@ -1193,7 +1349,7 @@ elif step==4:
     
     # save to pickle file
     #print(path+'\results.pickle')
-    with open(path+'\\results.pickle', 'wb') as handle: 
+    with open(path+'\\results_speeds_frontal.pickle', 'wb') as handle: 
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
         
 elif step==5:
