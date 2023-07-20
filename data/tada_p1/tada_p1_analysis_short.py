@@ -82,7 +82,7 @@ elif step==1:
     
     
     
-    for file in files:
+    for i,file in enumerate(files):
         motor_cmd = {'m1_cmd':[], 'm2_cmd':[], 'PF_cmd':[], 'EV_cmd':[], 'CPU0':[], 'CPU1':[], 'CPU2':[], 'CPU3':[]}
         motor_cmd_new = {'PF_cmd':[], 'EV_cmd':[]}
         motor_listen = {'curr_pos1':[], 'curr_pos2':[], 'curr_PF':[], 'curr_EV':[], 'q1':[], 'q5':[], 't_off':[]}
@@ -120,11 +120,11 @@ elif step==1:
         #figure3.show()
         figure3 = go.Figure()
 
-        figure4.add_trace(go.Scatter(x=time, y=motor_listen['t_off'], mode='markers', name='timing_offset_markers in microsec'))
+        figure4.add_trace(go.Scatter(x=time[:3300], y=motor_listen['t_off'][:3300], mode='markers', name=f'{i}'))
         #figure4.add_trace(go.Scatter(x=time1, y=motor_listen['t_off'], mode='lines', name='timing_offset_lines'))
         figure4.update_layout(title_text=f'{file}')
         #figure4.show()
-        figure4 = go.Figure()
+        #figure4 = go.Figure()
     #exit()
 
         
@@ -141,10 +141,10 @@ elif step==1:
         #print(steady_info_time); #break
         print(f'{file}')
         #print("Averages and sd for CPU0:", [np.mean(motor_cmd['CPU0']), np.std(motor_cmd['CPU0'])], "CPU1:", [np.mean(motor_cmd['CPU1']), np.std(motor_cmd['CPU1'])], "CPU2:", [np.mean(motor_cmd['CPU2']), np.std(motor_cmd['CPU2'])], "CPU3:", [np.mean(motor_cmd['CPU3']), np.std(motor_cmd['CPU3'])])
-        print("Average CPU load:", np.mean([motor_cmd['CPU0'], motor_cmd['CPU1'], motor_cmd['CPU2'], motor_cmd['CPU3']]), "CPU_sd:", np.std([motor_cmd['CPU0'], motor_cmd['CPU1'], motor_cmd['CPU2'], motor_cmd['CPU3']]))
+        print("Average CPU load:", np.mean([motor_cmd['CPU0'][:3300], motor_cmd['CPU1'][:3300], motor_cmd['CPU2'][:3300], motor_cmd['CPU3'][:3300]]), "CPU_sd:", np.std([motor_cmd['CPU0'][:3300], motor_cmd['CPU1'][:3300], motor_cmd['CPU2'][:3300], motor_cmd['CPU3'][:3300]]))
         #print(file.find('S'))
         sampl_freq = np.float64(file[file.find('S')+1:])
-        print("Average toff:", np.mean(motor_listen['t_off'])/sampl_freq, "toff_sd:", np.std(motor_listen['t_off']))
+        print("Average toff:", np.mean(motor_listen['t_off'][:3300])/1, "toff_sd:", np.std(motor_listen['t_off'][:3300]))
         #exit() 
         #                    
         
@@ -152,6 +152,10 @@ elif step==1:
         #figure.write_html(folder+'file_motor.html')
         #figure_polar.write_image(f'{bag_folder_path}/file_polar.svg')
         #figure_polar.write_image(f'{bag_folder_path}/file_polar.png')
+    figure4.update_layout(title_text=f'Influence of PI gains and Sampling Period on Clock Synchronization')
+    figure4.update_xaxes(title_text='Time (sec)')
+    figure4.update_yaxes(title_text='Actual Sampling Period (microsec)')
+    figure4.show()
 
 elif step==3:
     # I in increasing order, P in increasing order, S in increasing order
