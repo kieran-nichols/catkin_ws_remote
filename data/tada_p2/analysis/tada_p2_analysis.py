@@ -45,7 +45,7 @@ def TADA_angle(M1,M2):
     return PF,EV,q1,q5
 
 # find all files with '.bag' in name
-path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\tada_p2\subj1"
+path = r"C:\Users\roemb\source\repos\catkin_ws_remote\data\tada_p2\subj1"
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
 topics = ['angular_moments','europa_topic', 'linear_moments', 'motor_command', 'sensing_topic', 'xsens_joint_angle', 'xsens_com']
 #colors = ['red', 'blue', 'green']
@@ -68,7 +68,7 @@ xsens_joint_angle = {'hip_sag':[], 'knee_sag':[], 'ankle_sag':[]}
 xsens_com = {'com_pos_x':[], 'com_pos_y':[], 'com_pos_z':[]}
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
 
-step = 3
+step = 1
 
 # convert the rosbag to csv files that are based on topics
 if step==0:

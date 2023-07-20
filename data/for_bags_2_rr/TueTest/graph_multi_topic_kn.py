@@ -14,7 +14,7 @@ import types
 # find all files with '.bag' in name
 #path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\for_bags"
 #path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\for_bags_2"
-path = r"C:\Users\roemb\source\repos\catkin_ws_remote\data\for_bags_2_rr\asb_final"
+path = r"C:\Users\roemb\source\repos\catkin_ws_remote\data\for_bags_2_rr"
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
 #print(files, "\nlist_length= ", len(files))
 
@@ -55,9 +55,9 @@ if step==0:
     for file in files:
     #    # Execute the command and retrieve the output
         subprocess.run('rostopic echo -b {} -p /europa_topic > data_rr/europa_topic_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)
-        subprocess.run('rostopic echo -b {} -p /sensing_topic > data_rr/sensing_topic_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)  
-        subprocess.run('rostopic echo -b {} -p /motor_listen > data_rr/motor_listen_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)
-        subprocess.run('rostopic echo -b {} -p /motor_command > data_rr/motor_command_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)  
+        #subprocess.run('rostopic echo -b {} -p /sensing_topic > data_rr/sensing_topic_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)  
+        #subprocess.run('rostopic echo -b {} -p /motor_listen > data_rr/motor_listen_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)
+        #subprocess.run('rostopic echo -b {} -p /motor_command > data_rr/motor_command_{}.csv'.format(file,file), capture_output=True, text=True, shell=True)  
 
 elif step==1:
 
@@ -77,7 +77,8 @@ elif step==1:
         data = pd.read_csv('data_rr/europa_topic_{}.csv'.format(file))
         data.columns = data.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
         #print(data)
-        time = data.field_t -  data.field_t[0]#data.time
+
+#        time = data.field_t -  data.field_t[0]#data.time
         print('sample rate for europa: ', len(time)/time[len(time)-1])
         real_time = data.index
         moments['mx'] = data.field_mx
@@ -96,28 +97,28 @@ elif step==1:
         #imu_data['gyro_z'] = data1.field_gyro_z
         imu_data['accel_x'] = data1.field_accel_x
 
-        # Read motor listen
-        data2 = pd.read_csv('data_rr/motor_listen_{}.csv'.format(file))
-        data.columns = data.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
-        #print(data)
-        time = data.field_t -  data.field_t[0]#data.time
-        print('sample rate for europa: ', len(time)/time[len(time)-1])
-        real_time = data.index
-        moments['mx'] = data.field_mx
-        moments['my'] = data.field_my
-        moments['fz'] = data.field_fz
+#        # Read motor listen
+#        data2 = pd.read_csv('data_rr/motor_listen_{}.csv'.format(file))
+#        data.columns = data.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
+#        #print(data)
+#        time = data.field_t -  data.field_t[0]#data.time
+#        print('sample rate for europa: ', len(time)/time[len(time)-1])
+#        real_time = data.index
+#        moments['mx'] = data.field_mx
+#        moments['my'] = data.field_my
+#        moments['fz'] = data.field_fz
         #all_real_time.append(real_time)
 
         # Read motor command
-        data3 = pd.read_csv('data_rr/motor_command_{}.csv'.format(file))
-        data.columns = data.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
+#        data3 = pd.read_csv('data_rr/motor_command_{}.csv'.format(file))
+#        data.columns = data.columns.map(lambda x : x.replace(".", "_").replace("%", ""))
         #print(data)
-        time = data.field_t -  data.field_t[0]#data.time
-        print('sample rate for europa: ', len(time)/time[len(time)-1])
-        real_time = data.index
-        moments['mx'] = data.field_mx
-        moments['my'] = data.field_my
-        moments['fz'] = data.field_fz
+#        time = data.field_t -  data.field_t[0]#data.time
+#        print('sample rate for europa: ', len(time)/time[len(time)-1])
+#        real_time = data.index
+#        moments['mx'] = data.field_mx
+#        moments['my'] = data.field_my
+#        moments['fz'] = data.field_fz
         #all_real_time.append(real_time)
 
 
