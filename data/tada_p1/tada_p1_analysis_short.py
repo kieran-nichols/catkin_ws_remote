@@ -119,7 +119,7 @@ elif step==1:
         figure3.update_layout(title_text=f'{file}')
         #figure3.show()
         figure3 = go.Figure()
-
+        
         figure4.add_trace(go.Scatter(x=time[:3300], y=motor_listen['t_off'][:3300], mode='markers', name=f'{i}'))
         #figure4.add_trace(go.Scatter(x=time1, y=motor_listen['t_off'], mode='lines', name='timing_offset_lines'))
         figure4.update_layout(title_text=f'{file}')
@@ -147,12 +147,11 @@ elif step==1:
         print("Average toff:", np.mean(motor_listen['t_off'][:3300])/1, "toff_sd:", np.std(motor_listen['t_off'][:3300]))
         #exit() 
         #                    
-        
 
         #figure.write_html(folder+'file_motor.html')
         #figure_polar.write_image(f'{bag_folder_path}/file_polar.svg')
         #figure_polar.write_image(f'{bag_folder_path}/file_polar.png')
-    figure4.update_layout(title_text=f'Influence of PI gains and Sampling Period on Clock Synchronization')
+    figure4.update_layout(title_text=f'Influence of PI gains and Sampling Period on Clock Synchronization', font_size=25)
     figure4.update_xaxes(title_text='Time (sec)')
     figure4.update_yaxes(title_text='Actual Sampling Period (microsec)')
     figure4.show()

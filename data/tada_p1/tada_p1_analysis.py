@@ -14,6 +14,7 @@ import types
 import math
 import pickle
 from plotly.colors import n_colors
+from scipy import stats
 
 step = 2
 time_offset = 0
@@ -232,19 +233,22 @@ elif step==1:
         offset = 75
         period1 = slice(24550-offset,24720-offset)
         movement = motor_listen['curr_PF'][period1] - motor_cmd['PF_cmd'][period]
+        time_reduced = [z-time[24550] for z in time[period]]
+        time_reduced1 = [z-time1[24550-offset] for z in time1[period1]]
         #if abs(movement[0]-movement[offset+ind])/abs(movement[0])>=0.95: #difference < 0.25: # change in error in degrees                            
         #if np.nanmean(difference_array[i][-10:])<0.1 and len(difference_array[i][-10:])>=10 and abs(val) < 1: #difference < 0.25: # change in error in degrees
 
-        figure1.add_trace(go.Scatter(x=time[period], y=motor_cmd['PF_cmd'][period], mode='lines', name='PF_command',marker=dict(color='red'))) # adding markers slows down the rendering
-        figure1.add_trace(go.Scatter(x=time1[period1], y=motor_listen['curr_PF'][period1], mode='lines', name='PF_actual',marker=dict(color='lightcoral')))        
-        figure1.add_trace(go.Scatter(x=time[period], y=motor_cmd['EV_cmd'][period], mode='lines', name='EV_command',marker=dict(color='blue'))) # adding markers slows down the rendering
-        figure1.add_trace(go.Scatter(x=time1[period1], y=motor_listen['curr_EV'][period1], mode='lines', name='EV_actual',marker=dict(color='steelblue')))
-        figure1.add_trace(go.Scatter(x=[time1[24598-offset],time1[24682-offset]], y=[motor_listen['curr_PF'][24598-offset],motor_listen['curr_PF'][24682-offset]], mode='markers', name='95% Rise Time', marker=dict(size=10)))
-        figure1.add_trace(go.Scatter(x=[time1[24613-offset],time1[24699-offset]], y=[motor_listen['curr_PF'][24613-offset],motor_listen['curr_PF'][24699-offset]], mode='markers', name='Settling Time', marker=dict(size=10)))
-        figure1.update_layout(title_text=f'Ankle Angle commands and actual positions')
+        figure1.add_trace(go.Scatter(x=time_reduced, y=motor_cmd['PF_cmd'][period], mode='lines', name='PF_command',marker=dict(color='red'))) # adding markers slows down the rendering
+        figure1.add_trace(go.Scatter(x=time_reduced1, y=motor_listen['curr_PF'][period1], mode='lines', name='PF_actual',marker=dict(color='lightcoral')))        
+        figure1.add_trace(go.Scatter(x=time_reduced, y=[-z for z in motor_cmd['EV_cmd'][period]], mode='lines', name='IV_command',marker=dict(color='blue'))) # adding markers slows down the rendering
+        figure1.add_trace(go.Scatter(x=time_reduced1, y=[-z for z in motor_listen['curr_EV'][period1]], mode='lines', name='IV_actual',marker=dict(color='steelblue')))
+        figure1.add_trace(go.Scatter(x=[time1[24598-offset]-time1[24550-offset],time1[24682-offset]-time1[24550-offset]], y=[motor_listen['curr_PF'][24598-offset],motor_listen['curr_PF'][24682-offset]], mode='markers', name='95% Rise Time', marker=dict(size=10)))
+        figure1.add_trace(go.Scatter(x=[time1[24613-offset]-time1[24550-offset],time1[24699-offset]-time1[24550-offset]], y=[motor_listen['curr_PF'][24613-offset],motor_listen['curr_PF'][24699-offset]], mode='markers', name='Settling Time', marker=dict(size=10)))
+        figure1.update_layout(title_text=f'Ankle Angle commands and actual positions', font_size=20)
         figure1.update_xaxes(title_text='Time (s)')
-        figure1.update_yaxes(title_text='PF and EV Angles (deg)')
+        figure1.update_yaxes(title_text='PF and IV Angles (deg)')
         figure1.show()
+        exit()
 
         figure3.add_trace(go.Scatter(x=time, y=motor_cmd['CPU0'], mode='lines', name='CPU0')) # adding markers slows down the rendering
         figure3.add_trace(go.Scatter(x=time, y=motor_cmd['CPU1'], mode='lines', name='CPU1'))
@@ -556,14 +560,40 @@ elif step==2:
     #print([z for z in motor_angle_array if z!= []], '\n\n',steady_info_time[0])  ; exit()
     x0 = [abs(z[0]) for z in motor_angle_array if z!=[]]
     x1 = [abs(z[1]) for z in motor_angle_array if z!=[]]
+    
+    # get slope of line for x0, x1 and move_time_95 for top and bottom
+    print(len(x0), len(x1), len(move_time_95[0]))
+    slope, intercept, r_value, p_value, std_err = stats.linregress(x0[:len(move_time_95[0])], move_time_95[0])
+    slope1, intercept1, r_value1, p_value1, std_err1 = stats.linregress(x1[:len(move_time_95[0])], move_time_95[0])
+    slope2, intercept2, r_value2, p_value2, std_err2 = stats.linregress(x0[:len(steady_info_time[0])], steady_info_time[0])
+    slope3, intercept3, r_value3, p_value3, std_err3 = stats.linregress(x1[:len(steady_info_time[0])], steady_info_time[0])
+    print(slope, intercept, r_value**2, p_value, std_err)
+    print(slope1, intercept1, r_value1**2, p_value1, std_err1)
+    print(slope2, intercept2, r_value2**2, p_value2, std_err2)
+    print(slope3, intercept3, r_value3**2, p_value3, std_err3)
+
+    slope4, intercept4, r_value4, p_value4, std_err4 = stats.linregress(x0[:len(steady_info_val[0])], steady_info_val[0])
+    slope5, intercept5, r_value5, p_value5, std_err5 = stats.linregress(x1[:len(steady_info_val[0])], steady_info_val[0])
+    print(slope4, intercept4, r_value4**2, p_value4, std_err4)
+    print(slope5, intercept5, r_value5**2, p_value5, std_err5)
+    #exit()
+    
     figure8.add_trace(go.Scatter(x=x0, y=steady_info_time[0], mode='markers', marker_color='Blue', name="Top"))
     figure8.add_trace(go.Scatter(x=x1, y=steady_info_time[0], mode='markers', marker_color='Red', name="Bottom"))
+    #figure8.add_trace(go.Scatter(x=x0, y=move_time_95[0], mode='markers', marker_color='Blue', name="Top"))
+    #figure8.add_trace(go.Scatter(x=x1, y=move_time_95[0], mode='markers', marker_color='Red', name="Bottom"))
+    figure8.add_trace(go.Scatter(x=x0, y=[slope2*z+intercept2 for z in x0], mode='lines', marker_color='darkblue', name="Best fit for Top"))
+    figure8.add_trace(go.Scatter(x=x1, y=[slope3*z+intercept3 for z in x1], mode='lines', marker_color='darkred', name="Best fit for Bottom"))
     
+    #figure9.add_trace(go.Scatter(x=x0, y=steady_info_val[0], mode='markers', marker_color='Blue', name="Top"))
+    #figure9.add_trace(go.Scatter(x=x1, y=steady_info_val[0], mode='markers', marker_color='Red', name="Bottom"))
     figure9.add_trace(go.Scatter(x=x0, y=steady_info_val[0], mode='markers', marker_color='Blue', name="Top"))
     figure9.add_trace(go.Scatter(x=x1, y=steady_info_val[0], mode='markers', marker_color='Red', name="Bottom"))
+    figure9.add_trace(go.Scatter(x=x0, y=[slope4*z+intercept4 for z in x0], mode='lines', marker_color='darkblue', name="Best fit for Top"))
+    figure9.add_trace(go.Scatter(x=x1, y=[slope5*z+intercept5 for z in x1], mode='lines', marker_color='darkred', name="Best fit for Bottom"))
     
-    figure9.update_layout(title='PF Error of Movement', xaxis_title='Change of Motor Angle (deg)', yaxis_title='Final PF Error (deg)')
-    figure8.update_layout(title='Speed of Motor Movement', xaxis_title='Change of Motor Angle (deg)', yaxis_title='Movement Time (s)')
+    figure9.update_layout(title='Relationship of Final PF Error with Change of Motor Angles', xaxis_title='Change of Motor Angle (deg)', yaxis_title='Final Absolute PF Error (deg)', font_size=20)
+    figure8.update_layout(title='Relationship of Movement Time with Change of Motor Angles', xaxis_title='Change of Motor Angle (deg)', yaxis_title='Movement Time for Settling (s)', font_size=20)
     figure6.update_layout(title='Pose Accuracy and Repeatability', xaxis_title='EV (deg)', yaxis_title='PF (deg)')
     
     #print('counter: ', counter)   
@@ -598,31 +628,47 @@ elif step==2:
         else: missed += 1
     print("missed: ", missed)
     #print(angle_dict)
+    actual_err = []
     # find averages of the values of angle_dict for each key
     for key in angle_dict:
         #print(key)
         #print(angle_dict[key]); print(angle_dict[key]['control']); print(angle_dict[key]['control'][0]); 
         #print([z[0] for z in angle_dict[key]['hall']]); #exit()
-        command = [np.mean([z[0] for z in angle_dict[key]['control']]), np.mean([z[1] for z in angle_dict[key]['control']])]
-        actual = [np.mean([z[0] for z in angle_dict[key]['hall']]), np.mean([z[1] for z in angle_dict[key]['hall']])]
-        actual_sd = [np.std([z[0] for z in angle_dict[key]['hall']]), np.std([z[1] for z in angle_dict[key]['hall']])]
-        motive = [np.mean([z[0] for z in angle_dict[key]['motive']]), np.mean([z[1] for z in angle_dict[key]['motive']])]
-        #print(command,actual,motive)
-        name1 = "Intented Position"
+        command = [np.mean([-z[0] for z in angle_dict[key]['control']]), np.mean([z[1] for z in angle_dict[key]['control']])]
+        actual = [np.mean([-z[0] for z in angle_dict[key]['hall']]), np.mean([z[1] for z in angle_dict[key]['hall']])]
+        for x,y in zip(angle_dict[key]['control'], angle_dict[key]['hall']):
+            actual_err.append([abs(np.mean([x[0] - y[0]])), abs(np.mean([x[1] - y[1]]))])
+            #actual_err.append( [(np.mean([x[0] - y[0]])), (np.mean([x[1] - y[1]]))])
+        actual_sd = [np.std([-z[0] for z in angle_dict[key]['hall']]), np.std([z[1] for z in angle_dict[key]['hall']])]
+        motive = [np.mean([-z[0] for z in angle_dict[key]['motive']]), np.mean([z[1] for z in angle_dict[key]['motive']])]
+        name1 = "Intended Position"
         name2 = "Actual Position"
         # showlegend is False key is not the last of angle_dict
         #print(list(angle_dict.keys())[0])
         if key != list(angle_dict.keys())[-1]: showlegend = False
         else: showlegend = True
         
-        figure7.add_trace(go.Scatter(x=[command[1]], y=[command[0]], mode='markers', marker_color='Red', name=name1, legendgroup=name1, showlegend=showlegend))
-        figure7.add_trace(go.Scatter(x=[actual[1]], y=[actual[0]], error_x=dict(array=[actual_sd[0]]), error_y=dict(array=[actual_sd[1]]), mode='markers', marker_color='Blue', name=name2, legendgroup=name2, showlegend=showlegend))
+        #figure7.add_trace(go.Scatter(x=[command[1]], y=[command[0]], mode='markers', marker_color='Red', name=name1, legendgroup=name1, showlegend=showlegend, visible='legendonly'))
+        #figure7.add_trace(go.Scatter(x=[actual[1]], y=[actual[0]], error_x=dict(array=[actual_sd[0]]), error_y=dict(array=[actual_sd[1]]), mode='markers', marker_color='Blue', name=name2, legendgroup=name2, showlegend=showlegend, visible='legendonly'))
+        figure7.add_trace(go.Scatter(x=[command[1]], y=[command[0]], mode='markers', marker_color='Red', name=name1, legendgroup=name1, showlegend=False))
+        figure7.add_trace(go.Scatter(x=[actual[1]], y=[actual[0]], error_x=dict(array=[actual_sd[0]]), error_y=dict(array=[actual_sd[1]]), mode='markers', marker_color='Blue', name=name2, legendgroup=False, showlegend=False))
         #figure7.add_trace(go.Scatter(x=[motive[0]], y=[motive[1]], mode='markers', marker_color='Purple'))
     
-    figure7.update_layout(title='Pose Precision and Repeatability', xaxis_title='EV (deg)', yaxis_title='PF (deg)')
+    print("Average absolute error and its sd for steady state:", np.mean(actual_err[0]),',', np.mean(actual_err[1]), "degrees")
+    print("Average absolute error and its sd for steady state:", np.std(actual_err[0]),',', np.std(actual_err[1]), "degrees")
+    
+    #exit()
+    #figure7.update_layout(title='Pose Precision and Repeatability', xaxis_title='IV (deg)', yaxis_title='PF (deg)', font_size=20)
+    figure7.update_layout(title='Ankle Angle Precision', xaxis_title='IV (deg)', yaxis_title='PF (deg)', font_size=30)
+    figure7.update_yaxes(scaleanchor="x", scaleratio=1)
     
     figure7.show()
-        
+    # save to html file
+    #figure7.write_html(f'figure7.html')
+    # export to interactive ppt
+    #import chart_studio.plotly as py
+    #py.plot(figure7, filename='figure7', auto_open=True)
+    exit()
     
     #figure2 = go.Figure()
     #figure3.show()     

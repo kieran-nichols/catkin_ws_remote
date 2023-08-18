@@ -22,6 +22,23 @@ https://github.com/kieran-nichols/catkin_ws_tadaros.git
 
 
 ## How to use
+
+### TADA remote computer and instructions on how to set it up
+
+1. To set up a Visual Studio on Windows laptop
+I downloaded Visual Studio 2022 from My CAE account, go into the left panel and click on Azure Dev Tools for Teaching.
+You can download VS 2022 from there and other helpful software
+
+2. To set up ROS in VS22, I used this tutorial up to step 6.
+
+```/k "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64&& set ChocolateyInstall=c:\opt\chocolatey&& c:\opt\ros\noetic\x64\setup.bat```
+
+Use the above text to put into the argument. That was the fix I did for using the windows terminal in VS22.
+
+3. Additionally, if you want to run certain commands when the terminal opens, you can add commands to Step 2. For example, add the below text to have the catkin workspace built packages automatically be added to the ros workspace.
+
+```&& C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\devel\setup.bat```
+
 ### How to set up Remote bridge:
 Helpful links: https://husarion.com/tutorials/ros-tutorials/5-running-ros-on-multiple-machines/ 
 https://github.com/Brabalawuka/RosOnWindows
