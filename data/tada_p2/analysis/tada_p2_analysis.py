@@ -121,6 +121,7 @@ elif step==1:
     ########################################
     #topics = [moments, imu_data, motor_command, xsens_joint_angle, xsens_com, linear_moments]
     #folder_name = path+'\\'+'subj1_fast\\' #subj1_med_comb
+    #folder_name = path+'\\'+'subj2_new_fast\\' #subj1_med_comb
     folder_name = path+'\\'+'subj3_fast\\' #subj1_med_comb
 
     # Read motor cmd data from csv
