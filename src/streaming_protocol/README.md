@@ -5,6 +5,7 @@
 We heavily referenced https://www.xsens.com/hubfs/Downloads/usermanual/MVN_User_Manual.pdf for information. 
 
 This table from page 55 (or 66 pdf) explains what topics are there to report.
+
 ![image](https://github.com/kieran-nichols/catkin_ws_remote/assets/71956317/d34d323e-8a86-4ab9-b12d-6dae74f903c3)
 
 
