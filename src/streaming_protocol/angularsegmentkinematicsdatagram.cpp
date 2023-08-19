@@ -152,7 +152,6 @@ void AngularSegmentKinematicsDatagram::printData() const
 		
 		float who = m_data.at(i).segmentId; //getting segment's ID
 		//inserting the segment's reported values into the vector
-		
 		vec.insert(vec.end(), { who, m_data.at(i).angularVeloc[0], m_data.at(i).angularVeloc[1],m_data.at(i).angularVeloc[2],
 			m_data.at(i).angularAccel[0],m_data.at(i).angularAccel[1], m_data.at(i).angularAccel[2]});
 
