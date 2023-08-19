@@ -135,8 +135,8 @@ void AngularSegmentKinematicsDatagram::printData() const
 	float final_time = floorf(lower_final_time)/1000+high_final_time; //adding them up while trying to round it to just ms 
 
 	//This is where we find the reported values of angular kinematics
-	vec.insert(vec.end(), { final_time });
-	float who = m_data.at(0).segmentId;
+	vec.insert(vec.end(), { final_time }); //getting the vector
+	float who = m_data.at(0).segmentId;  //identifying the vector's id
 
 	//adding only lower leg sensor's reading. Each number corresponds to a certain sensor which is why we iterate through some and skip others.
 	vec.insert(vec.end(), { who, m_data.at(0).angularVeloc[0], m_data.at(0).angularVeloc[1],m_data.at(0).angularVeloc[2],
@@ -145,10 +145,14 @@ void AngularSegmentKinematicsDatagram::printData() const
 	//If you want to edit which parts we report, you need to do it here by choosing which segment (i) we add.
 	for (int i = 15; i < 22; i++)
 	{
+		//Which ones we are skipping
 		if (i == 18) {
 			continue;
 		}
-		float who = m_data.at(i).segmentId;
+		
+		float who = m_data.at(i).segmentId; //getting segment's ID
+		//inserting the segment's reported values into the vector
+		
 		vec.insert(vec.end(), { who, m_data.at(i).angularVeloc[0], m_data.at(i).angularVeloc[1],m_data.at(i).angularVeloc[2],
 			m_data.at(i).angularAccel[0],m_data.at(i).angularAccel[1], m_data.at(i).angularAccel[2]});
 
