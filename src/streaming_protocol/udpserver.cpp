@@ -62,24 +62,14 @@ void UdpServer::readMessages()
 	XsByteArray buffer;
 
 	std::cout << "Waiting to receive packets from the client on port " << m_port << " ..." << std::endl << std::endl;
-
-	//// Set up ROS publisher that streams data via UDP
-	//ros::NodeHandle s;
-	//ros::Publisher pub_xsens_joint_angle = s.advertise<std_msgs::Float32MultiArray>("xsens_joint_angle", 10);
-	//ros::spinOnce();
-
 	while (!m_stopping)
 	{
-		//std::cout << ".";
+
 		int rv = m_socket->read(buffer);
 		if (buffer.size() > 0)
 			m_parserManager->readDatagram(buffer);
 
 		buffer.clear();
-		//XsTime::msleep(1);
-
-		//ros::Rate rate(100); // no, not here, it'll be too slow and variable
-		//rate.sleep();
 	}
 
 	std::cout << "Stopping receiving packets..." << std::endl << std::endl;
@@ -105,7 +95,6 @@ void UdpServer::stopThread()
 	m_stopping = true;
 
 	while (m_started)
-		//XsTime::msleep(10);
 		continue;
 
 }
