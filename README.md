@@ -48,8 +48,8 @@ https://github.com/Brabalawuka/RosOnWindows
 2. Create a .txt including following content: (Use your raspi ip address)
 	```	
 	@echo off 
-	set ROS_MASTER_URI=http://192.168.1.19:11311
-	set ROS_IP=192.168.1.249
+	set ROS_MASTER_URI=http://192.168.1.19:11311   (this is the pi)
+	set ROS_IP=192.168.1.249 (this is from the laptop)
 	```
 	Save as C:\bashrc.cmd at disk C (or another non-catkin_ws location).
 3. (Optional) Following step 2, open regedit: -> Win+R and enter regedit. Find [HKEY_LOCAL_MACHINE\Software\Microsoft\Command Processor] and add a string key named Autorun, value is C:\bashrc.cmd"

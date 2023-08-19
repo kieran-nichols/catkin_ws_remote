@@ -58,6 +58,7 @@ def TADA_angle(M1,M2):
 #path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\tada_p2\subj1"
 #path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\tada_p2\subj2_new"
 path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\tada_p2\subj3"
+
 files = [f for f in os.listdir(path) if f.endswith('.bag')]
 topics = ['angular_moments','europa_topic', 'linear_moments', 'motor_command', 'sensing_topic', 'xsens_joint_angle', 'xsens_com']
 #colors = ['red', 'blue', 'green']

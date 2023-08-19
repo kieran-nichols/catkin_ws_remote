@@ -117,41 +117,52 @@ void AngularSegmentKinematicsDatagram::printData() const
 
 	std::vector<float> vec;//creating a publishing vector
 
-	/////////////////////////time
-	// Get the current time
-	ros::Time::init();
-	ros::Time now = ros::Time::now();
+	///////////////////////////
+	///This is where we ROSify the code
+	///This is where you want to edit
+	///////////////////////////
+	
+	ros::Time::init(); //we initialize time
+	ros::Time now = ros::Time::now(); //we record the starting time
 
+	//We have to cut-off parts of time because the float is too big to report. 
+	//We report in a similar time format across the project.
 	int lowtime =  now.nsec/1000000; //getting the ms of time
 	int hightime =  now.sec%100000;  //getting the seconds of time
 
-	float lower_final_time =  (float) lowtime; //turning them into a float
-	float high_final_time =  (float) hightime;
-	float final_time = floorf(lower_final_time)/1000+high_final_time; //adding them up while trying to round it to just ms (which doesn't work)
+	float lower_final_time =  (float) lowtime; //turning ms time into a float
+	float high_final_time =  (float) hightime; //turning seconds time into a float
+	float final_time = floorf(lower_final_time)/1000+high_final_time; //adding them up while trying to round it to just ms 
 
-	///////////////////////////////////
-
-	vec.insert(vec.end(), { final_time });
-	float who = m_data.at(0).segmentId;
+	//This is where we find the reported values of angular kinematics
+	vec.insert(vec.end(), { final_time }); //getting the vector
+	float who = m_data.at(0).segmentId;  //identifying the vector's id
 
 	//adding only lower leg sensor's reading. Each number corresponds to a certain sensor which is why we iterate through some and skip others.
 	vec.insert(vec.end(), { who, m_data.at(0).angularVeloc[0], m_data.at(0).angularVeloc[1],m_data.at(0).angularVeloc[2],
 		m_data.at(0).angularAccel[0],m_data.at(0).angularAccel[1], m_data.at(0).angularAccel[2] });
 	
-	
+	//If you want to edit which parts we report, you need to do it here by choosing which segment (i) we add.
 	for (int i = 15; i < 22; i++)
 	{
+		//Which ones we are skipping
 		if (i == 18) {
 			continue;
 		}
-		float who = m_data.at(i).segmentId;
+		
+		float who = m_data.at(i).segmentId; //getting segment's ID
+		//inserting the segment's reported values into the vector
 		vec.insert(vec.end(), { who, m_data.at(i).angularVeloc[0], m_data.at(i).angularVeloc[1],m_data.at(i).angularVeloc[2],
 			m_data.at(i).angularAccel[0],m_data.at(i).angularAccel[1], m_data.at(i).angularAccel[2]});
 
 		
 	}
-	angular_moments.data = (vec);
-	pub_angular_moments.publish(angular_moments);
-	ros::spinOnce();
+	angular_moments.data = (vec); //we are formating the reported values
+	pub_angular_moments.publish(angular_moments); //publishing the reported
+	ros::spinOnce(); //continue reporting
+
+	///////////////////////////
+	///This is where we end ROSification
+	///////////////////////////
 	
 }
