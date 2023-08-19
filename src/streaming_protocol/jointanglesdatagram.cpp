@@ -109,34 +109,44 @@ void JointAnglesDatagram::printData() const
 	xsens_joint_angle.data.clear();
 	std::vector<float> vec;//vector for publishing
 
-	/////////////////////////time
-	// Get the current time
-	ros::Time::init();
-	ros::Time now = ros::Time::now();
+	///////////////////////////
+	///This is where we ROSify the code
+	///This is where you want to edit
+	///////////////////////////
+	
+	ros::Time::init();//we initialize time
+	ros::Time now = ros::Time::now(); //we record the starting time
 
+	//We have to cut-off parts of time because the float is too big to report. 
+	//We report in a similar time format across the project.
 	int lowtime =  now.nsec/1000000; //getting the ms of time
 	int hightime =  now.sec%100000;  //getting the seconds of time
 
 	float lower_final_time =  (float) lowtime; //turning them into a float
-	float high_final_time =  (float) hightime;
-	float final_time = floorf(lower_final_time)/1000+high_final_time; //adding them up while trying to round it to just ms (which doesn't work)
+	float high_final_time =  (float) hightime;//turning seconds time into a float
+	float final_time = floorf(lower_final_time)/1000+high_final_time; //adding them up while trying to round it to just ms
 
-	///////////////////////////////////
+	//This is where we find the reported values of angular kinematics
+	vec.insert(vec.end(), { final_time }); //getting the vector
 	
-	vec.insert(vec.end(), { final_time });
-	
-	//adding only lower leg sensor's reading. Each number corresponds to a certain sensor which is why we iterate.
+	//If you want to edit which parts we report, you need to do it here by choosing which segment (i) we add.
 	for (int i = 14; i < 24; i++)
 	{
 
-		float parent = m_data.at(i).parent;
-		float child = m_data.at(i).child;
+		float parent = m_data.at(i).parent; //getting it's parent
+		float child = m_data.at(i).child; //getting it's child
+		//inserting the segment's reported values into the vector
 		vec.insert(vec.end(), {parent,child, (m_data.at(i).rotation[0]), (m_data.at(i).rotation[1]), (m_data.at(i).rotation[2]) });
 	}
 
 
-	xsens_joint_angle.data = (vec);
-	pub_xsens_joint_angle.publish(xsens_joint_angle);
-	ros::spinOnce();
+	xsens_joint_angle.data = (vec);  //we are formating the reported values
+	pub_xsens_joint_angle.publish(xsens_joint_angle); //publishing the reported
+	ros::spinOnce(); //continue reporting
+
+	///////////////////////////
+	///This is where we end ROSification
+	///////////////////////////
+	
 
 }
