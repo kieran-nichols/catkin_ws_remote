@@ -43,29 +43,16 @@ https://github.com/kieran-nichols/catkin_ws_tadaros.git
  * Navigate to the folder you want to store data in and type “rosbag record -a -O whateverfilename.bag” 
  * Periodically check rostopic echo to make sure Europa and all the other topics are still working 
 
-## Individual nodes
-#### Brain node
-rosrun tada_ros brain_node.py
-
-#### Motor node
-rosrun soem simple_test 
-(this command may not work as you may need to include some arguments, check the launch file)
-
-#### IMU node
-rosrun tada_ros sensor_node.py
-  
-#### Europa node
-rosrun tada_ros ble_server.py
-
-#### Xsens node
-rosrun streaming_protocol streaming_protocol_node
-
-#### rosbag function
-rosbag record -a -O test.bag
-
-#### GUI node
-rosrun talker_listener scripts/listener_control.py
-rosrun talker_listener scripts/data_processing.py
+## Individual node instructions
+| Node | Command | Notes |
+| --- | --- | --- |
+| Brain | rosrun tada_ros brain_node.py|
+| Motor | rosrun soem simple_test | (this command may not work as you may need to include some arguments, check the launch file)|
+| IMU | rosrun tada_ros sensor_node.py |
+| Europa | rosrun tada_ros ble_server.py |
+| Xsens  | rosrun streaming_protocol streaming_protocol_node |
+| rosbag | rosbag record -a -O test.bag | not a node but important function |
+| GUI node | rosrun talker_listener scripts/listener_control.py, rosrun talker_listener scripts/data_processing.py | work in progress |
 
 ## To update the repositories
 * git add .   (this adds everything) 
