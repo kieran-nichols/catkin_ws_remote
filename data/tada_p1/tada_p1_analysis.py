@@ -42,6 +42,10 @@ figure6 = go.Figure()
 figure7 = go.Figure()
 figure8 = go.Figure()
 figure9 = go.Figure()
+figure10 = go.Figure()
+figure11 = go.Figure()
+figure12 = make_subplots(rows=1, cols=2, subplot_titles=("Movement Times", "Movement Errors"),)#, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)  
+
 #figure2 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 #figure3 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 #figure_polar = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2], horizontal_spacing=0.075,)# subplot_titles=("Plantarflexor Moment", "Eversion Moment", "Resultant Moment")) 
@@ -238,17 +242,35 @@ elif step==1:
         #if abs(movement[0]-movement[offset+ind])/abs(movement[0])>=0.95: #difference < 0.25: # change in error in degrees                            
         #if np.nanmean(difference_array[i][-10:])<0.1 and len(difference_array[i][-10:])>=10 and abs(val) < 1: #difference < 0.25: # change in error in degrees
 
-        figure1.add_trace(go.Scatter(x=time_reduced, y=motor_cmd['PF_cmd'][period], mode='lines', name='PF_command',marker=dict(color='red'))) # adding markers slows down the rendering
-        figure1.add_trace(go.Scatter(x=time_reduced1, y=motor_listen['curr_PF'][period1], mode='lines', name='PF_actual',marker=dict(color='lightcoral')))        
-        figure1.add_trace(go.Scatter(x=time_reduced, y=[-z for z in motor_cmd['EV_cmd'][period]], mode='lines', name='IV_command',marker=dict(color='blue'))) # adding markers slows down the rendering
-        figure1.add_trace(go.Scatter(x=time_reduced1, y=[-z for z in motor_listen['curr_EV'][period1]], mode='lines', name='IV_actual',marker=dict(color='steelblue')))
-        figure1.add_trace(go.Scatter(x=[time1[24598-offset]-time1[24550-offset],time1[24682-offset]-time1[24550-offset]], y=[motor_listen['curr_PF'][24598-offset],motor_listen['curr_PF'][24682-offset]], mode='markers', name='95% Rise Time', marker=dict(size=10)))
-        figure1.add_trace(go.Scatter(x=[time1[24613-offset]-time1[24550-offset],time1[24699-offset]-time1[24550-offset]], y=[motor_listen['curr_PF'][24613-offset],motor_listen['curr_PF'][24699-offset]], mode='markers', name='Settling Time', marker=dict(size=10)))
-        figure1.update_layout(title_text=f'Ankle Angle commands and actual positions', font_size=20)
+        figure1.add_trace(go.Scatter(x=time_reduced, y=motor_cmd['PF_cmd'][period], mode='lines', name='PF_command',marker=dict(color='red'), line_width=10, opacity=0.3)) # adding markers slows down the rendering
+        figure1.add_trace(go.Scatter(x=time_reduced1, y=motor_listen['curr_PF'][period1], mode='lines', name='PF_actual',marker=dict(color='red'), line_dash='dashdot'))        
+        figure1.add_trace(go.Scatter(x=time_reduced, y=[-z for z in motor_cmd['EV_cmd'][period]], mode='lines', name='IV_command',marker=dict(color='blue'), line_width=10, opacity=0.3)) # adding markers slows down the rendering
+        figure1.add_trace(go.Scatter(x=time_reduced1, y=[-z for z in motor_listen['curr_EV'][period1]], mode='lines', name='IV_actual',marker=dict(color='blue'), line_dash='dot'))
+        figure1.add_trace(go.Scatter(x=[time1[24598-offset]-time1[24550-offset],time1[24682-offset]-time1[24550-offset]], y=[motor_listen['curr_PF'][24598-offset],motor_listen['curr_PF'][24682-offset]], 
+                                     mode='markers', name='95% Rise Time', marker=dict(size=15, color='black', symbol='circle-dot')))
+        figure1.add_trace(go.Scatter(x=[time1[24613-offset]-time1[24550-offset],time1[24699-offset]-time1[24550-offset]], y=[motor_listen['curr_PF'][24613-offset],motor_listen['curr_PF'][24699-offset]], 
+                                     mode='markers', name='Settling Time', marker=dict(size=15, color='black', symbol='x-dot')))
+        #figure1.add_annotation(x=time1[24598-offset]-time1[24550-offset], y=motor_listen['curr_PF'][24598-offset], text="95% Rise Time", showarrow=True, arrowhead=1)
+        #figure1.add_annotation(x=time1[24613-offset]-time1[24550-offset], y=motor_listen['curr_PF'][24613-offset], text="Settling Time", showarrow=True, arrowhead=1)
+        # add arrow using add_shape from x=0.226, y=10 to x=0.476, y=10
+        figure1.add_annotation(ax=0.355, ay=7, x=0.476, y=7, xref="x", yref="y", axref="x", ayref="y", text="95% Rise Time", showarrow=True, arrowhead=3, font_size=15, bordercolor='black')
+        # add arrow in opposite direction
+        figure1.add_annotation(ax=0.27, ay=7, x=0.226, y=7, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=3)
+        # add arrow from x=0.476, y=8 to x=0.625, y=8
+        figure1.add_annotation(ax=0.425, ay=9, x=0.625, y=9, xref="x", yref="y", axref="x", ayref="y", text="Settling Time", showarrow=True, arrowhead=3, font_size=15, bordercolor='black')
+        # add arrow in opposite direction
+        figure1.add_annotation(ax=0.35, ay=9, x=0.226, y=9, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=3)
+        # add vertical lines at x=0.226, 0.476, and 0.625
+        figure1.add_shape(type="line", x0=0.226, y0=-5, x1=0.226, y1=10, line=dict(color="black",width=1,dash="dot",),)
+        figure1.add_shape(type="line", x0=0.476, y0=-5, x1=0.476, y1=8, line=dict(color="black",width=1,dash="dot",),)
+        figure1.add_shape(type="line", x0=0.625, y0=-5, x1=0.625, y1=10, line=dict(color="black",width=1,dash="dot",),)
+        figure1.add_annotation(x=0.1, y=-9, text=f'IV', showarrow=False, font_size=22, font_color='blue')
+        figure1.add_annotation(x=0.1, y=1, text=f'PF', showarrow=False, font_size=22, font_color='red')
+        figure1.update_layout(title_text=f'Ankle Angle commands and actual positions', font_size=20, template="plotly_white",)
         figure1.update_xaxes(title_text='Time (s)')
         figure1.update_yaxes(title_text='PF and IV Angles (deg)')
-        figure1.show()
-        exit()
+        #figure1.show()
+        #exit()
 
         figure3.add_trace(go.Scatter(x=time, y=motor_cmd['CPU0'], mode='lines', name='CPU0')) # adding markers slows down the rendering
         figure3.add_trace(go.Scatter(x=time, y=motor_cmd['CPU1'], mode='lines', name='CPU1'))
@@ -444,6 +466,7 @@ elif step==2:
         steady_time = [0,0]
         steady_val = [0,0]
         dist_trav = [0,0]
+        diff_test = 1
         first = 0  
         difference_array = [[],[]]
             
@@ -467,21 +490,21 @@ elif step==2:
                 # find start time when approx val changes value and end time when it stops being equal to approx_val
                 # mean of last 5 items of steady_info_val should be less than 0.25
 
-                if abs(movement[0]-movement[offset+ind])/abs(movement[0])>=0.95 and abs(val) < 1 and stop == 0: #difference < 0.25: # change in error in degrees
+                if abs(movement[0]-movement[offset+ind])/abs(movement[0])>=0.95 and abs(val) < diff_test and stop == 0: #difference < 0.25: # change in error in degrees
                     move_time_95[i].append(t)
                     stop = 1
                 
-                if np.nanmean(difference_array[i][-10:])<0.1 and len(difference_array[i][-10:])>=10 and abs(val) > 1 and last==0:
+                if np.nanmean(difference_array[i][-10:])<0.1 and len(difference_array[i][-10:])>=10 and abs(val) > diff_test and last==0:
                     counter[i] += 1  
                     last = 1
                 
-                if np.nanmean(difference_array[i][-10:])<0.1 and len(difference_array[i][-10:])>=10 and abs(val) < 1: #difference < 0.25: # change in error in degrees
+                if np.nanmean(difference_array[i][-10:])<0.1 and len(difference_array[i][-10:])>=10 and abs(val) < diff_test: #difference < 0.25: # change in error in degrees
                     #if abs(approx_val) < 0.25:
                     steady_time[i] = [t-0.1]
-                    steady_val[i] = [val]
+                    steady_val[i] = val#movement[ind-10]#[val]
                     dist_trav[i] = [abs(movement[0])]
                     steady_info_time[i].append(steady_time[i][0])
-                    steady_info_val[i].append(abs(val)) 
+                    steady_info_val[i].append(abs(val))#movement[ind-10])) 
                     steady_info_displacement[i].append(dist_trav[i])
                     
                     if i==0:
@@ -562,7 +585,7 @@ elif step==2:
     x1 = [abs(z[1]) for z in motor_angle_array if z!=[]]
     
     # get slope of line for x0, x1 and move_time_95 for top and bottom
-    print(len(x0), len(x1), len(move_time_95[0]))
+    print(len(regions), len(x0), len(x1), len(move_time_95[0]))
     slope, intercept, r_value, p_value, std_err = stats.linregress(x0[:len(move_time_95[0])], move_time_95[0])
     slope1, intercept1, r_value1, p_value1, std_err1 = stats.linregress(x1[:len(move_time_95[0])], move_time_95[0])
     slope2, intercept2, r_value2, p_value2, std_err2 = stats.linregress(x0[:len(steady_info_time[0])], steady_info_time[0])
@@ -572,10 +595,54 @@ elif step==2:
     print(slope2, intercept2, r_value2**2, p_value2, std_err2)
     print(slope3, intercept3, r_value3**2, p_value3, std_err3)
 
+    ## create histogram of the steady state values
+    #figure10.add_trace(go.Histogram(x=steady_info_val[0], name='Top'))
+    #figure10.add_trace(go.Histogram(x=steady_info_val[1], name='Bottom'))
+    #figure10.add_trace(go.Histogram(x=move_time_95[0], name='Top'))
+    #figure10.add_trace(go.Histogram(x=move_time_95[1], name='Bottom'))
+    #figure10.add_trace(go.Histogram(x=steady_info_time[0], name='steady_info_time', marker_color='blue'))
+    #figure10.add_trace(go.Histogram(x=move_time_95[0], name='move_time_95', marker_color='red'))
+    #figure10.add_trace(go.Histogram(x=steady_info_val[0], name='steady_info_val', marker_color='green'))
+    # add histnorm curves
+    #figure10.add_trace(go.Histogram(x=steady_info_val[0], histnorm='probability', name='steady_info_val', marker_color='blue', opacity=0.75))
+    #figure10.add_trace(go.Histogram(x=steady_info_time[0], histnorm='probability', name='steady_info_time', marker_color='red', opacity=0.75))
+    #figure10.add_trace(go.Histogram(x=move_time_95[0], histnorm='probability', name='move_time_95', marker_color='blue', opacity=0.75))
+    # add violin plots
+    #figure10.add_trace(go.Violin(x=steady_info_val[0], name='steady_info_val', marker_color='blue', opacity=0.75, box_visible=True, meanline_visible=True ))
+    # create an array called y of string 'Movement_Times' that is the size of steady_info_time[0]
+    y1 = ['Movement Times' for i in range(len(steady_info_time[0]))]
+    y2 = ['Movement Times' for i in range(len(move_time_95[0]))]
+    # positive and negative violin plots only seem to work vertically when you want to group them together
+    figure10.add_trace(go.Violin(y=move_time_95[0], marker_color='green', name='95% Rise Time (s)', yaxis='y',))
+                                #side='positive', legendgroup='move_time_95', scalegroup='move_time_95', x=y1))#,))
+    figure10.add_trace(go.Violin(y=steady_info_time[0],  marker_color='red', name='Settling Time (s)', yaxis = 'y',))
+                                 #side='negative', legendgroup='steady_info_time', scalegroup='steady_info_time', x=y1 ))#,))
+    figure10.add_vrect(x0=-0.5,x1=1.5,line_width=0, fillcolor="grey", opacity=0.2,
+                       annotation_text="MOVEMENT TIME", annotation_position="top",)
+    #figure10.add_trace(go.Violin(y=steady_info_val[0], marker_color='blue', name='Movement Error (deg)', yaxis='y2'))#,))
+    
+    #figure10.show()
+    #exit()
+
+    # add subplot for steady_info_time[0] in figure12
+    figure12.add_trace(go.Violin(y=move_time_95[0], marker_color='green', name='95% Rise Time',spanmode='hard'),1,1)
+    figure12.add_trace(go.Violin(y=steady_info_time[0], marker_color='red', name='Settling Time',spanmode='hard'),1,1)
+    figure12.update_yaxes(title_text='Movement Time (s)',row=1,col=1)
+    #figure12.show()
+    #exit()
+    
+
     slope4, intercept4, r_value4, p_value4, std_err4 = stats.linregress(x0[:len(steady_info_val[0])], steady_info_val[0])
     slope5, intercept5, r_value5, p_value5, std_err5 = stats.linregress(x1[:len(steady_info_val[0])], steady_info_val[0])
     print(slope4, intercept4, r_value4**2, p_value4, std_err4)
     print(slope5, intercept5, r_value5**2, p_value5, std_err5)
+    
+    figure11.add_trace(go.Scatter(x=steady_info_time[0], y=steady_info_val[0], mode='markers', marker_color='Blue', name="Raw"))
+    slope6, intercept6, r_value6, p_value6, std_err6 = stats.linregress(steady_info_time[0], steady_info_val[0])
+    print(slope6, intercept6, r_value6**2, p_value6, std_err6)
+    figure11.add_trace(go.Scatter(x=steady_info_time[0], y=[intercept6+slope6*z for z in steady_info_time[0]], mode='lines', marker_color='red', name="Best fit"))
+    #figure11.add_trace(go.Scatter(x=x0, y=steady_info_val[0], mode='markers', marker_color='Blue', name="Top"))
+    #figure11.show()
     #exit()
     
     figure8.add_trace(go.Scatter(x=x0, y=steady_info_time[0], mode='markers', marker_color='Blue', name="Top"))
@@ -594,14 +661,14 @@ elif step==2:
     
     figure9.update_layout(title='Relationship of Final PF Error with Change of Motor Angles', xaxis_title='Change of Motor Angle (deg)', yaxis_title='Final Absolute PF Error (deg)', font_size=20)
     figure8.update_layout(title='Relationship of Movement Time with Change of Motor Angles', xaxis_title='Change of Motor Angle (deg)', yaxis_title='Movement Time for Settling (s)', font_size=20)
-    figure6.update_layout(title='Pose Accuracy and Repeatability', xaxis_title='EV (deg)', yaxis_title='PF (deg)')
+    figure6.update_layout(title='Pose Accuracy and Repeatability', xaxis_title='IV (deg)', yaxis_title='PF (deg)')
     
-    #print('counter: ', counter)   
+    print('counter: ', counter[0]); #exit()
     #figure2.show()  
     #figure5.show()
     #figure6.show()
-    figure8.show()
-    figure9.show()
+    #figure8.show()
+    #figure9.show()
     
     angle_dict = {}
     # create for loop for unique values of angle_control_array
@@ -626,9 +693,10 @@ elif step==2:
                 angle_dict[x_label]['motive'] = angle_dict[x_label]['motive']+[z]
                 #print(angle_dict); exit()
         else: missed += 1
-    print("missed: ", missed)
+    print("missed: ", missed); #exit()
     #print(angle_dict)
     actual_err = []
+    actual_err_raw = []
     # find averages of the values of angle_dict for each key
     for key in angle_dict:
         #print(key)
@@ -637,8 +705,11 @@ elif step==2:
         command = [np.mean([-z[0] for z in angle_dict[key]['control']]), np.mean([z[1] for z in angle_dict[key]['control']])]
         actual = [np.mean([-z[0] for z in angle_dict[key]['hall']]), np.mean([z[1] for z in angle_dict[key]['hall']])]
         for x,y in zip(angle_dict[key]['control'], angle_dict[key]['hall']):
-            actual_err.append([abs(np.mean([x[0] - y[0]])), abs(np.mean([x[1] - y[1]]))])
+            #actual_err.append([abs(np.mean([x[0] - y[0]])), abs(np.mean([x[1] - y[1]]))])
+            actual_err.append([np.mean([abs(x[0] - y[0])]), np.mean([abs(x[1] - y[1])])])
+            actual_err_raw.append([(np.mean([x[0] - y[0]])), (np.mean([x[1] - y[1]]))])
             #actual_err.append( [(np.mean([x[0] - y[0]])), (np.mean([x[1] - y[1]]))])
+        #print(actual_err)
         actual_sd = [np.std([-z[0] for z in angle_dict[key]['hall']]), np.std([z[1] for z in angle_dict[key]['hall']])]
         motive = [np.mean([-z[0] for z in angle_dict[key]['motive']]), np.mean([z[1] for z in angle_dict[key]['motive']])]
         name1 = "Intended Position"
@@ -648,27 +719,55 @@ elif step==2:
         if key != list(angle_dict.keys())[-1]: showlegend = False
         else: showlegend = True
         
-        #figure7.add_trace(go.Scatter(x=[command[1]], y=[command[0]], mode='markers', marker_color='Red', name=name1, legendgroup=name1, showlegend=showlegend, visible='legendonly'))
-        #figure7.add_trace(go.Scatter(x=[actual[1]], y=[actual[0]], error_x=dict(array=[actual_sd[0]]), error_y=dict(array=[actual_sd[1]]), mode='markers', marker_color='Blue', name=name2, legendgroup=name2, showlegend=showlegend, visible='legendonly'))
-        figure7.add_trace(go.Scatter(x=[command[1]], y=[command[0]], mode='markers', marker_color='Red', name=name1, legendgroup=name1, showlegend=False))
-        figure7.add_trace(go.Scatter(x=[actual[1]], y=[actual[0]], error_x=dict(array=[actual_sd[0]]), error_y=dict(array=[actual_sd[1]]), mode='markers', marker_color='Blue', name=name2, legendgroup=False, showlegend=False))
+        figure7.add_trace(go.Scatter(x=[command[1]], y=[command[0]], mode='markers', marker_color='Red', name=name1, legendgroup=name1, showlegend=showlegend, visible='legendonly', opacity=0.5, marker_size=15))
+        figure7.add_trace(go.Scatter(x=[actual[1]], y=[actual[0]], error_x=dict(array=[actual_sd[0]]), error_y=dict(array=[actual_sd[1]]), mode='markers', marker_color='Blue', name=name2, legendgroup=name2, showlegend=showlegend, visible='legendonly'))
+        #figure7.add_trace(go.Scatter(x=[command[1]], y=[command[0]], mode='markers', marker_color='Red', name=name1, legendgroup=name1, showlegend=False, opacity=0.5, marker_size=15))
+        #figure7.add_trace(go.Scatter(x=[actual[1]], y=[actual[0]], error_x=dict(array=[actual_sd[0]]), error_y=dict(array=[actual_sd[1]]), mode='markers', marker_color='Blue', name=name2, legendgroup=False, showlegend=False))
         #figure7.add_trace(go.Scatter(x=[motive[0]], y=[motive[1]], mode='markers', marker_color='Purple'))
     
     print("Average absolute error and its sd for steady state:", np.mean(actual_err[0]),',', np.mean(actual_err[1]), "degrees")
     print("Average absolute error and its sd for steady state:", np.std(actual_err[0]),',', np.std(actual_err[1]), "degrees")
+
+    #figure10.add_trace(go.Violin(y=[z[0] for z in actual_err_raw], marker_color='purple', name='PF_raw Error (deg)', yaxis='y2',))
+    #figure10.add_trace(go.Violin(y=[z[1] for z in actual_err_raw], marker_color='green', name='EV_raw Error (deg)', yaxis='y2',))
+    figure10.add_trace(go.Violin(y=[z[0] for z in actual_err], marker_color='purple', name='PF Error (deg)', yaxis='y2',))
+    figure10.add_trace(go.Violin(y=[z[1] for z in actual_err], marker_color='blue', name='IV Error (deg)', yaxis='y2',))
+    #print(actual_err[1])
+    figure10.update_layout(template="plotly_white", font_size=20, title='Ankle-Angles Changes with Movement Times and Errors')#, violinmode='overlay', violingap=0, violingroupgap=0,)#,barmode='overlay',)
+    figure10.update_traces(box_line=dict(color='black'), opacity=0.75, box_visible=True, meanline_visible=True, meanline_color='black')
+    figure10.update_layout(yaxis2=dict(anchor='x', overlaying='y', side='right', title='Movement Error (deg)', color='black',),
+                            yaxis=dict(title='Movement Time (s)', color='grey'))
+    figure10.update_yaxes(showline=True)
+    figure10.update_layout(showlegend=False)
+    figure10.update_yaxes(range=[-0.1, 1.1])
+    #figure10.update_yaxes(range=[-0.25, 0.5])
+    #print([z[0] for z in actual_err])
+    figure10.show()
+    #exit()
+    
+    figure12.add_trace(go.Violin(y=[z[0] for z in actual_err], marker_color='purple', name='PF Error',spanmode='hard'),1,2)
+    figure12.add_trace(go.Violin(y=[z[1] for z in actual_err], marker_color='blue', name='IV Error',spanmode='hard'),1,2)
+    #print(actual_err[1])
+    figure12.update_layout(template="plotly_white", font_size=20, title='Ankle-Angles Changes with Movement Times and Errors')
+    figure12.update_yaxes(title_text='Movement Error (deg)',row=1,col=2)
+    figure12.update_traces(box_line=dict(color='black'), opacity=0.75, box_visible=True, meanline_visible=True, meanline_color='black')
+    figure12.update_yaxes(showline=True)
+    figure12.update_layout(showlegend=False)
+    #figure12.update_yaxes(range=[-0.1, 1.1])
+    #figure12.show()
     
     #exit()
     #figure7.update_layout(title='Pose Precision and Repeatability', xaxis_title='IV (deg)', yaxis_title='PF (deg)', font_size=20)
-    figure7.update_layout(title='Ankle Angle Precision', xaxis_title='IV (deg)', yaxis_title='PF (deg)', font_size=30)
+    figure7.update_layout(title='Ankle Angle Precision', xaxis_title='IV (deg)', yaxis_title='PF (deg)', template="plotly_white", font_size=20)
     figure7.update_yaxes(scaleanchor="x", scaleratio=1)
-    
     figure7.show()
+    
     # save to html file
     #figure7.write_html(f'figure7.html')
     # export to interactive ppt
     #import chart_studio.plotly as py
     #py.plot(figure7, filename='figure7', auto_open=True)
-    exit()
+    #exit()
     
     #figure2 = go.Figure()
     #figure3.show()     

@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\data",
+    "\\data\\tada_p1"
   ],
-  "SelectedNode": "\\C:\\Users\\roemb\\Source\\Repos\\catkin_ws_remote",
+  "SelectedNode": "\\data\\tada_p1\\tada_p1_analysis.py",
   "PreviewInSolutionExplorer": false
 }

@@ -18,11 +18,12 @@ from plotly.colors import n_colors
 step = 1
 time_offset = 0
 
-# create array of 8 different colors from red to blue
+# create array of 8 colors of the rainbow spectrum in n_colors
 #n_colors = 8
-#colors = px.colors.sample_colorscale("Rainbow", [n/(n_colors) for n in range(n_colors)])
-colors = n_colors('rgb(0, 255, 255)', 'rgb(255, 0, 255)', 255, colortype = 'rgb')
-other_colors = n_colors('rgb(255, 0, 255)', 'rgb(0, 255, 255)', 255, colortype = 'rgb')
+#colors_vary = px.colors.sample_colorscale("Jet", [n/(n_colors-1) for n in range(n_colors)])
+colors_vary = px.colors.qualitative.Plotly
+#colors = n_colors('rgb(0, 255, 255)', 'rgb(255, 0, 255)', 255, colortype = 'rgb')
+#other_colors = n_colors('rgb(255, 0, 255)', 'rgb(0, 255, 255)', 255, colortype = 'rgb')
 
 # find all files with '.bag' in name
 path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\tada_p1"
@@ -30,6 +31,10 @@ path = r"C:\Users\the1k\source\repos\PythonApplication1\catkin_ws_remote\data\ta
 files = [f for f in os.listdir(path) if f.endswith('.bag') and f.startswith('P')]
 #print(files)
 topics = ['motor_command','motor_listen']
+order = [0,1,3,6,2,5,4]
+order_name = ['P-0.1, I-0.002, SP-250','P-0.1, I-0.05, SP-250', 'P-0.02, I-0.01, SP-250', 'P-0.1, I-0.01,SP-1000', 
+              'P-0.1, I-0.01, SP-250', 'P-0.1, I-0.01, SP-500', 'P-0.5, I-0.01, SP-250']
+              
 
 figure = go.Figure()
 figure1 = go.Figure()
@@ -39,6 +44,7 @@ figure4 = go.Figure()
 figure5 = go.Figure()
 figure6 = go.Figure()
 figure7 = go.Figure()
+figure8 = go.Figure()
 #figure2 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 #figure3 = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15, horizontal_spacing=0.009)   
 #figure_polar = make_subplots(rows=1, cols=2, specs=[[{'type': 'polar'}]*2], horizontal_spacing=0.075,)# subplot_titles=("Plantarflexor Moment", "Eversion Moment", "Resultant Moment")) 
@@ -120,14 +126,27 @@ elif step==1:
         #figure3.show()
         figure3 = go.Figure()
         
-        figure4.add_trace(go.Scatter(x=time[:3300], y=motor_listen['t_off'][:3300], mode='markers', name=f'{i}'))
+        figure4.add_trace(go.Scatter(x=time[:3300], y=motor_listen['t_off'][:3300], mode='markers', name=f'{order_name[i]}',marker_color=colors_vary[order[i]]))#,legendrank=order[i]))
         #figure4.add_trace(go.Scatter(x=time1, y=motor_listen['t_off'], mode='lines', name='timing_offset_lines'))
         figure4.update_layout(title_text=f'{file}')
         #figure4.show()
         #figure4 = go.Figure()
     #exit()
-
-        
+    
+        # make histograms for motor_listen['t_off'][:3300]
+        #figure5.add_trace(go.Histogram(x=motor_listen['t_off'][:3300], name=f'{i}',histnorm='probability', opacity=0.75,))
+        # change bin size
+        #figure5.add_trace(go.Histogram(x=motor_listen['t_off'][:3300], name=f'{i}', xbins=dict(size=0.1), histnorm='probability', opacity=0.75,))
+        # add violin plots with closer placements
+        if i in [0,1,2,4,6]:
+            #figure5.add_trace(go.Violin(x=motor_listen['t_off'][:3300], name=f'{order_name[i]}', box_visible=True, meanline_visible=True, side='positive', width=1.5, line_color=colors_vary[order[i]]))
+            # change color
+            figure5.add_trace(go.Violin(x=motor_listen['t_off'][:3300], name=f'{order[i]+1}', box_visible=True, meanline_visible=True, side='positive', #, meanline_color='black'
+                                        width=1.5, line_color=colors_vary[order[i]], fillcolor=None, ))
+            figure5.add_annotation(x=210, y=4-order[i]+0.2, text=f'{order_name[order[i]]}', showarrow=False,  font=dict(size=18, color=colors_vary[order[i]]))
+        else: 
+            print("dropped")
+                 
         color_ind_array_old = [0, 1, 0, 1, 0, 1, 0, 1]
         color_ind_array = [0, 1, 0, 1, 0, 1, 0, 1]
         # add one to each item of color_ind_array and append it to color_ind_array. Do this 8 times
@@ -140,21 +159,27 @@ elif step==1:
         #figure3.show()     
         #print(steady_info_time); #break
         print(f'{file}')
-        #print("Averages and sd for CPU0:", [np.mean(motor_cmd['CPU0']), np.std(motor_cmd['CPU0'])], "CPU1:", [np.mean(motor_cmd['CPU1']), np.std(motor_cmd['CPU1'])], "CPU2:", [np.mean(motor_cmd['CPU2']), np.std(motor_cmd['CPU2'])], "CPU3:", [np.mean(motor_cmd['CPU3']), np.std(motor_cmd['CPU3'])])
+        print("Averages and sd for CPU0:", [np.mean(motor_cmd['CPU0']), np.std(motor_cmd['CPU0'])], "CPU1:", [np.mean(motor_cmd['CPU1']), np.std(motor_cmd['CPU1'])], "CPU2:", [np.mean(motor_cmd['CPU2']), np.std(motor_cmd['CPU2'])], "CPU3:", [np.mean(motor_cmd['CPU3']), np.std(motor_cmd['CPU3'])])
         print("Average CPU load:", np.mean([motor_cmd['CPU0'][:3300], motor_cmd['CPU1'][:3300], motor_cmd['CPU2'][:3300], motor_cmd['CPU3'][:3300]]), "CPU_sd:", np.std([motor_cmd['CPU0'][:3300], motor_cmd['CPU1'][:3300], motor_cmd['CPU2'][:3300], motor_cmd['CPU3'][:3300]]))
         #print(file.find('S'))
         sampl_freq = np.float64(file[file.find('S')+1:])
         print("Average toff:", np.mean(motor_listen['t_off'][:3300])/1, "toff_sd:", np.std(motor_listen['t_off'][:3300]))
-        #exit() 
-        #                    
+        #exit()                     
 
         #figure.write_html(folder+'file_motor.html')
         #figure_polar.write_image(f'{bag_folder_path}/file_polar.svg')
         #figure_polar.write_image(f'{bag_folder_path}/file_polar.png')
-    figure4.update_layout(title_text=f'Influence of PI gains and Sampling Period on Clock Synchronization', font_size=25)
+    figure4.update_layout(title_text=f'Influence of PI gains and Sampling Period on Clock Synchronization', font_size=20, template="plotly_white", showlegend=True)
     figure4.update_xaxes(title_text='Time (sec)')
+    # add vertical black dashed line at x=250
+    figure5.add_vline(type="line", x=250, line=dict(color="Black", dash="dash",),)
     figure4.update_yaxes(title_text='Actual Sampling Period (microsec)')
-    figure4.show()
+    #figure4.show()
+    
+    figure5.update_layout(title_text=f'Influence of PI gains and Sampling Period on Clock Synchronization <br> for Controlled Sampling Periods of 250 microseconds', font_size=20, template="plotly_white", showlegend=False)#, legend_traceorder='reversed')
+    figure5.update_xaxes(title_text='Actual Sampling Period (microsec)')
+    figure5.update_yaxes(categoryorder='array', categoryarray=['5','4','3','2','1'], title_text='Condition')
+    figure5.show()
 
 elif step==3:
     # I in increasing order, P in increasing order, S in increasing order
